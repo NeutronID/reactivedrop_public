@@ -635,6 +635,9 @@ void CASWHudMinimap::PaintMapSection()
 			int map_top = m_MapCornerInPanel.y;
 			int map_bottom = tall + oy;
 
+			int cx = map_right - map_left;	// minimap center x
+			int cy = map_bottom - map_top;
+
 			if (m_bHasOverview)	// draw a section of the minimap
 			{
 				float Source1X = m_MapCentre.x - source_size;
@@ -668,12 +671,62 @@ void CASWHudMinimap::PaintMapSection()
 				surface()->DrawSetColor(Color(255,255,255,255));
 				surface()->DrawSetTexture(m_nMapTextureID);
 				
+				int iPlayerYaw = local->m_flMovementAxisYaw.Get();
+				// rotate minimap polygon around its origin
+				float a = float( iPlayerYaw - 90 ) * M_PI / 180.f;
+				Vector2D v1, v2, v3, v4;
+				v1.x = cos( a ) * ( map_left - cx ) - sin( a ) * ( map_top - cy ) + cx;
+				v1.y = sin( a ) * ( map_left - cx ) + cos( a ) * ( map_top - cy ) + cy;
+
+				v2.x = cos( a ) * ( map_right - cx ) - sin( a ) * ( map_top - cy ) + cx;
+				v2.y = sin( a ) * ( map_right - cx ) + cos( a ) * ( map_top - cy ) + cy;
+
+				v3.x = cos( a ) * ( map_right - cx ) - sin( a ) * ( map_bottom - cy ) + cx;
+				v3.y = sin( a ) * ( map_right - cx ) + cos( a ) * ( map_bottom - cy ) + cy;
+
+				v4.x = cos( a ) * ( map_left - cx ) - sin( a ) * ( map_bottom - cy ) + cx;
+				v4.y = sin( a ) * ( map_left - cx ) + cos( a ) * ( map_bottom - cy ) + cy;
+
+
+/*				Vector2D v1, v2, v3, v4;
+				int left = map_left, top = map_top, right = map_right, bottom = map_bottom;
+				switch (iPlayerYaw)
+				{
+				case 90:
+				default:
+					v1.Init(left, top);
+					v2.Init(right, top);
+					v3.Init(right, bottom);
+					v4.Init(left, bottom);
+					break;
+				case 180:
+					v1.Init(right, top);
+					v2.Init(right, bottom);
+					v3.Init(left, bottom);
+					v4.Init(left, top);
+					break;
+				case 270:
+					v1.Init(right, bottom);
+					v2.Init(left, bottom);
+					v3.Init(left, top);
+					v4.Init(right, top);
+					break;
+				case 360:
+				case 0:
+					v1.Init(left, bottom);
+					v2.Init(left, top);
+					v3.Init(right, top);
+					v4.Init(right, bottom);
+					break;
+				}
+				//*/
+
 				Vertex_t points[4] = 
 				{ 
-				Vertex_t( Vector2D(map_left, map_top),					Vector2D(Source1X/1024.0f,Source1Y/1024.0f) ), 
-				Vertex_t( Vector2D(map_right, map_top),					Vector2D(Source2X/1024.0f,Source1Y/1024.0f) ), 
-				Vertex_t( Vector2D(map_right, map_bottom),				Vector2D(Source2X/1024.0f,Source2Y/1024.0f) ), 
-				Vertex_t( Vector2D(map_left, map_bottom),				Vector2D(Source1X/1024.0f,Source2Y/1024.0f) ) 
+				Vertex_t( v1,					Vector2D(Source1X/1024.0f,Source1Y/1024.0f) ), 
+				Vertex_t( v2,					Vector2D(Source2X/1024.0f,Source1Y/1024.0f) ), 
+				Vertex_t( v3,				Vector2D(Source2X/1024.0f,Source2Y/1024.0f) ), 
+				Vertex_t( v4,				Vector2D(Source1X/1024.0f,Source2Y/1024.0f) ) 
 				}; 
 				surface()->DrawTexturedPolygon( 4, points );
 			}
