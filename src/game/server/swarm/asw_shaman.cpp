@@ -79,9 +79,11 @@ void CASW_Shaman::Spawn( void )
 void CASW_Shaman::Precache( void )
 {
 	BaseClass::Precache();
-
-	PrecacheScriptSound( "Shaman.Pain" );
-	PrecacheScriptSound( "Shaman.Die" );
+    PrecacheModel(m_pszAlienModelName);
+    //sound doesn't exist & add more sound effect 
+	PrecacheScriptSound( "ASW_Drone.DeathFireSizzle" );
+	PrecacheScriptSound( "Ranger.GibSplatHeavy" );
+	PrecacheScriptSound( "ASW_Parasite.Pain" );
 }
 
 
@@ -148,9 +150,11 @@ void CASW_Shaman::PainSound( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 void CASW_Shaman::DeathSound( const CTakeDamageInfo &info )
 {
-	// sounds for pain and death are defined in the npc_tier_tables excel sheet
-	// they are called from the asw_alien base class
-	BaseClass::DeathSound(info);
+	//add sound more notice obviously.
+	if ( m_nDeathStyle == kDIE_FANCY )
+   
+	    return;
+	EmitSound(m_bOnFire ? "ASW_Drone.DeathFireSizzle" : "Ranger.GibSplatHeavy");
 }
 
 
