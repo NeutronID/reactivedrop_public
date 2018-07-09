@@ -4951,6 +4951,15 @@ struct TeleportListEntry_t
 static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &entry, const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )
 {
 	CBaseEntity *pTeleport = entry.pEntity;
+	// Fixed crashes of asw_ent_teleport command on unavailable areas
+	if (!pTeleport || !newPosition )	
+		return;
+
+	Vector targetDir = *newPosition;
+	float targetDist = VectorNormalize(targetDir);
+	if (targetDist == 0 || targetDist > 30000)
+		return;
+							   
 	Vector prevOrigin = entry.prevAbsOrigin;
 	QAngle prevAngles = entry.prevAbsAngles;
 
