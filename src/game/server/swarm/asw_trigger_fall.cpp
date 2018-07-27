@@ -6,6 +6,7 @@
 //=============================================================================//
 #include "cbase.h"
 #include "triggers.h"
+#include "asw_marine.h"
 #include "asw_shareddefs.h"
 #include "asw_triggers.h"
 
@@ -39,8 +40,16 @@ void CASW_Trigger_Fall::Spawn( void )
 //-----------------------------------------------------------------------------
 void CASW_Trigger_Fall::FallTouch( CBaseEntity *pOther )
 {
-	// If it's a player, just kill him for now
-	if ( pOther->IsNPC() )
+	// If it's a player, just kill him for now: NO!
+
+	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(pOther);
+
+	if(pMarine)
+	{
+		pMarine->TeleportToFreeNode();
+		DevWarning(1, "Teleported marine to nearest free node!");
+	}
+	else if ( pOther->IsNPC() )
 	{
 		if ( pOther->IsAlive() == false )
 			return;
