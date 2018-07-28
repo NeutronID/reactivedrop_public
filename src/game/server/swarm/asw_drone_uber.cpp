@@ -12,6 +12,7 @@ ConVar asw_drone_uber_health("asw_drone_uber_health", "500", FCVAR_CHEAT, "How m
 ConVar asw_uber_speed_scale("asw_uber_speed_scale", "0.5f", FCVAR_CHEAT, "Speed scale of uber drone compared to normal");
 ConVar asw_uber_auto_speed_scale("asw_uber_auto_speed_scale", "0.3f", FCVAR_CHEAT, "Speed scale of uber drones when attacking");
 ConVar rd_drone_uber_model_scale("rd_drone_uber_model_scale", "1.3", FCVAR_CHEAT, "Scales uber drone model size" );
+ConVar rd_drone_uber_bones("rd_drone_uber_bones", "1", FCVAR_NONE, "Set bodygroups on ubers to the scariest appendage.");
 extern ConVar asw_alien_hurt_speed;
 extern ConVar asw_alien_stunned_speed;
 extern ConVar rd_deagle_bigalien_dmg_scale;
@@ -45,11 +46,20 @@ void CASW_Drone_Uber::Spawn( void )
 	SetHullType( HULL_MEDIUMBIG );	// Setting HULL_MEDIUMBIG(like a regular drone) instead of HULL_LARGE to prevent uber drones getting stuck in doors and windows
 	SetHullSizeNormal();
 
-	UTIL_SetSize(this, Vector(-17,-17,0), Vector(17,17,69));	// riflemod: decreased drone uber size, was Vector(-40,-40,0), Vector(40,40,130));
+	UTIL_SetSize(this, Vector(-17,-17,20), Vector(17,17,69));
 
 	// make sure uber drones are green
 	m_nSkin = 0;
 	SetHitboxSet(0);
+	if (rd_drone_uber_bones.GetBool())
+	{
+		SetBodygroup ( 0, 0 );	//beefier body
+		SetBodygroup ( 1, 2 );	//longest claws
+		SetBodygroup ( 2, 2 );
+		SetBodygroup ( 3, 2 );
+		SetBodygroup ( 4, 2 );
+		SetBodygroup ( 5, 1 );	//bones from back
+     }
 }
 
 void CASW_Drone_Uber::Precache( void )
