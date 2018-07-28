@@ -71,6 +71,7 @@ ConVar asw_springcol_radius( "asw_springcol_radius", "50.0", FCVAR_CHEAT, "Radiu
 ConVar asw_springcol_force_scale( "asw_springcol_force_scale", "3.0", FCVAR_CHEAT, "Multiplier for each individual push force" );
 ConVar asw_springcol_debug( "asw_springcol_debug", "0", FCVAR_CHEAT, "Display the direction of the pushaway vector. Set to entity index or -1 to show all." );
 ConVar rd_alien_instagib( "rd_alien_instagib", "0", FCVAR_NONE, "If 1 forces aliens to instantly gib upon death, without any fancy animations" );
+ConVar rd_alien_longrange("rd_alien_longrange", "0", FCVAR_CHEAT, "If non-zero, allow swarm to see this far.");
 
 float CASW_Alien::sm_flLastHurlTime = 0;
 
@@ -136,7 +137,7 @@ BEGIN_DATADESC( CASW_Alien )
 	DEFINE_FIELD(m_fNextStunSound, FIELD_FLOAT),
 	DEFINE_FIELD(m_fHurtSlowMoveTime, FIELD_TIME),
 	DEFINE_FIELD(m_flElectroStunSlowMoveTime, FIELD_TIME),
-	//								m_ActBusyBehavior (auto saved by AI)	
+	//m_ActBusyBehavior (auto saved by AI)	
 	DEFINE_FIELD( m_hSpawner, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_AlienOrders, FIELD_INTEGER ),
 	DEFINE_FIELD( m_vecAlienOrderSpot, FIELD_POSITION_VECTOR ),
@@ -589,7 +590,15 @@ void CASW_Alien::NPCInit()
 		SetDistSwarmSense(1152.0f);
 		SetDistLook( 1536.0f );
 		m_flDistTooFar = 2000.0f;
+    }
+
+	if (rd_alien_longrange.GetInt() > 0)
+	{
+		SetDistSwarmSense( rd_alien_longrange.GetFloat() );
+		SetDistLook( rd_alien_longrange.GetFloat() );
+		m_flDistTooFar = rd_alien_longrange.GetFloat();							  
 	}
+
 	SetCollisionBounds( GetHullMins(), GetHullMaxs() );
 
 	CASW_GameStats.Event_AlienSpawned( this );
