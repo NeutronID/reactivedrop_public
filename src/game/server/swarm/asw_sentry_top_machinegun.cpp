@@ -26,11 +26,13 @@ END_SEND_TABLE()
 BEGIN_DATADESC( CASW_Sentry_Top_Machinegun )
 END_DATADESC()
 
-
+ConVar rd_sentry_fire_rate("rd_sentry_fire_rate", "0.08f", FCVAR_CHEAT, "Machine gun sentry fire rate in seconds.");
+ConVar rd_sentry_overfire("rd_sentry_overfire", "0.45f", FCVAR_CHEAT, "Machine gun sentries keep firing this long after killing something.");
+ConVar rd_sentry_gun_damage("rd_sentry_gun_damage", "4.0f", FCVAR_CHEAT, "Machine gun sentry fire damage.");	//rock n roll:
+ConVar rd_sentry_gun_range("rd_sentry_gun_range", "525", FCVAR_CHEAT, "machine gun Set Sentry fire range.");
 
 #define ASW_SENTRY_FIRE_RATE 0.08f		// time in seconds between each shot
 #define ASW_SENTRY_OVERFIRE 0.45f		// keep firing for this long after killing someone, because it's more badass
-
 
 void CASW_Sentry_Top_Machinegun::Spawn( void )
 {
@@ -45,6 +47,12 @@ void CASW_Sentry_Top_Machinegun::Spawn( void )
 void CASW_Sentry_Top_Machinegun::SetTopModel()
 {
 	SetModel(SENTRY_TOP_MODEL);
+}
+
+// shot range function
+CASW_Sentry_Top_Machinegun::CASW_Sentry_Top_Machinegun() 
+{
+	m_flShootRange = rd_sentry_gun_range.GetFloat();
 }
 
 void CASW_Sentry_Top_Machinegun::Fire()
@@ -68,7 +76,7 @@ void CASW_Sentry_Top_Machinegun::Fire()
 	else
 	{
 		diff = m_hEnemy->WorldSpaceCenter() - GetFiringPosition();
-		m_flFireHysteresisTime = gpGlobals->curtime + ASW_SENTRY_OVERFIRE ;
+		m_flFireHysteresisTime = gpGlobals->curtime + rd_sentry_overfire.GetFloat();
 	}
 
 	// if we haven't fired in a few ticks, assume this is the first bullet in a salvo,
@@ -102,7 +110,7 @@ void CASW_Sentry_Top_Machinegun::Fire()
 		DispatchParticleEffect( "muzzle_sentrygun", PATTACH_POINT_FOLLOW, this, "muzzle", false, -1, &filter );
 
 		// advance by consistent interval (may cause more than one bullet to be fired per frame)
-		m_fNextFireTime += ASW_SENTRY_FIRE_RATE;
+		m_fNextFireTime += rd_sentry_fire_rate.GetFloat();
 
 		// use ammo
 		if ( pBase )
@@ -113,15 +121,8 @@ void CASW_Sentry_Top_Machinegun::Fire()
 
 }
 
-/*
+// ren-enable GetSentryDamage() function
 int CASW_Sentry_Top_Machinegun::GetSentryDamage()
 {
-	float flDamage = 10.0f;
-	if ( ASWGameRules() )
-	{
-		ASWGameRules()->ModifyAlienDamageBySkillLevel( flDamage );
-	}
-
-	return flDamage * GetSentryBase()->m_fDamageScale;
+	return rd_sentry_gun_damage.GetInt();										   
 }
-*/

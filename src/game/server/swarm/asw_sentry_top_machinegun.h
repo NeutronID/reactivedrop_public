@@ -16,6 +16,9 @@ public:
 	virtual void Fire();
 	virtual void SetTopModel();
 
+	CASW_Sentry_Top_Machinegun();
+    int GetSentryDamage();
+
 	// Classification
 	virtual Class_T Classify( void ) { return (Class_T) CLASS_ASW_SENTRY_GUN; }
 
