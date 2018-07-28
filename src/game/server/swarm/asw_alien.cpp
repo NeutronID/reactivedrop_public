@@ -30,6 +30,9 @@
 #include "asw_tesla_trap.h"
 #include "sendprop_priorities.h"
 #include "asw_spawn_manager.h"
+#include "asw_player.h"
+#include "asw_game_resource.h"
+#include "asw_marine_resource.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -72,6 +75,7 @@ ConVar asw_springcol_force_scale( "asw_springcol_force_scale", "3.0", FCVAR_CHEA
 ConVar asw_springcol_debug( "asw_springcol_debug", "0", FCVAR_CHEAT, "Display the direction of the pushaway vector. Set to entity index or -1 to show all." );
 ConVar rd_alien_instagib( "rd_alien_instagib", "0", FCVAR_NONE, "If 1 forces aliens to instantly gib upon death, without any fancy animations" );
 ConVar rd_alien_longrange("rd_alien_longrange", "0", FCVAR_CHEAT, "If non-zero, allow swarm to see this far.");
+ConVar rd_aliens_distance_from_marines("rd_aliens_distance_from_marines", "0", FCVAR_NONE, "If non-zero, don't send aliens farther than this distance from marines.");
 
 float CASW_Alien::sm_flLastHurlTime = 0;
 
@@ -228,6 +232,62 @@ CASW_Alien::CASW_Alien( void ) :
 	meleeAttack2.Init( 0.0f, 64.0f, 0.7f, false );
 	rangeAttack1.Init( 64.0f, 786.0f, 0.5f, false );
 	rangeAttack2.Init( 64.0f, 512.0f, 0.5f, false );
+}
+
+struct marineInfo
+{
+public:
+	edict_t *playerEdict;
+	float fl_MarineDist;
+};
+
+int	CASW_Alien::ShouldTransmit( const CCheckTransmitInfo *pInfo )
+{
+	if(rd_aliens_distance_from_marines.GetInt() > 0)
+	{
+		CASW_Game_Resource *pGameResource = ASWGameResource();
+		marineInfo marineEdicts [ASW_MAX_MARINE_RESOURCES];
+		CASW_Marine_Resource *pMarineResource = NULL;
+		CASW_Marine *pMarine = NULL;
+		for (int i = 0; i < ASW_MAX_MARINE_RESOURCES; i++)
+		{
+			pMarineResource = pGameResource->GetMarineResource(i);
+			if (pMarineResource)
+			{
+				pMarine = pMarineResource->GetMarineEntity();
+				if (pMarine)
+                {
+					if (pMarine->GetHealth() > 0 && pMarineResource->GetCommander())
+					{
+						marineEdicts[i].playerEdict = pMarineResource->GetCommander()->edict();
+						marineEdicts[i].fl_MarineDist = pMarine->GetAbsOrigin().DistTo(this->GetAbsOrigin());
+					}
+					else
+					{
+						return FL_EDICT_ALWAYS;
+					}
+				}
+			}
+		}
+
+		marineInfo marineEdict;
+		marineEdict.fl_MarineDist = 0;
+
+		for (int i = 0; i < ASW_MAX_MARINE_RESOURCES; i++)
+		{
+			if (marineEdicts[i].playerEdict == pInfo->m_pClientEnt)
+				marineEdict = marineEdicts[i];
+		}
+
+		Assert(marineEdict.fl_MarineDist);
+
+		if (marineEdict.fl_MarineDist <= rd_aliens_distance_from_marines.GetFloat())
+			return FL_EDICT_ALWAYS;
+		else
+			return FL_EDICT_DONTSEND;
+	}
+
+	return FL_EDICT_ALWAYS;
 }
 
 CASW_Alien::~CASW_Alien()
@@ -596,7 +656,7 @@ void CASW_Alien::NPCInit()
 	{
 		SetDistSwarmSense( rd_alien_longrange.GetFloat() );
 		SetDistLook( rd_alien_longrange.GetFloat() );
-		m_flDistTooFar = rd_alien_longrange.GetFloat();							  
+		m_flDistTooFar = rd_alien_longrange.GetFloat();
 	}
 
 	SetCollisionBounds( GetHullMins(), GetHullMaxs() );

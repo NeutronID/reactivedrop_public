@@ -73,6 +73,7 @@ public:
 	virtual void OnRestore();
 	virtual void CallBehaviorThink();
 	virtual void StartTouch( CBaseEntity *pOther );
+	virtual int	ShouldTransmit( const CCheckTransmitInfo *pInfo );
 	virtual void Spawn();
 	float m_flLastThinkTime;
 
