@@ -14,6 +14,7 @@
 #include "asw_director.h"
 #include "asw_fail_advice.h"
 #include "asw_spawn_manager.h"
+#include "entitylist.h"
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -22,17 +23,37 @@ LINK_ENTITY_TO_CLASS( asw_spawner, CASW_Spawner );
 //ConVar asw_uber_drone_chance("asw_uber_drone_chance", "0.25f", FCVAR_CHEAT, "Chance of an uber drone spawning when playing in uber mode");
 extern ConVar asw_debug_spawners;
 extern ConVar asw_drone_health;
+ConVar asw_carnage_debug("asw_carnage_debug", "0", FCVAR_NONE | FCVAR_DEVELOPMENTONLY, "Print debug messages on each spawner that asw_carnage tries to change.", true, 0.0f, true, 1.0f);
+ConVar rd_carnage_antlionguard_normal("rd_carnage_antlionguard_normal", "1.0", FCVAR_CHEAT, "Multiplies antlionguard normal in the level by this amount.");
+ConVar rd_carnage_antlionguard_cavern("rd_carnage_antlionguard_cavern", "1.0", FCVAR_CHEAT, "Multiplies antlionguard cavern in the level by this amount.");
+ConVar rd_carnage_parasite_defanged("rd_carnage_parasite_defanged", "1.0", FCVAR_CHEAT, "Multiplies defanged parasites in the level by this amount.");
+ConVar rd_carnage_min_interval("rd_carnage_min_interval", "0", FCVAR_CHEAT, "Sets the minimum spawn interval when using asw_carnage commands.");
+ConVar rd_carnage_drone_jumper("rd_carnage_drone_jumper", "1.0", FCVAR_CHEAT, "Multiplies jumper drones in the level by this amount.");
+ConVar rd_carnage_drone_uber("rd_carnage_drone_uber", "1.0", FCVAR_CHEAT, "Multiplies uber drones in the level by this amount.");
+ConVar rd_carnage_shieldbug("rd_carnage_shieldbug", "1.0", FCVAR_CHEAT, "Multiplies shieldbugs in the level by this amount.");
+ConVar rd_carnage_harvester("rd_carnage_harvester", "1.0", FCVAR_CHEAT, "Multiplies harvesters in the level by this amount.");
+ConVar rd_carnage_parasite("rd_carnage_parasite", "1.0", FCVAR_CHEAT, "Multiplies parasites in the level by this amount.");
 ConVar asw_spawning_enabled( "asw_spawning_enabled", "1", FCVAR_CHEAT, "If set to 0, asw_spawners won't spawn aliens" );
+ConVar rd_carnage_boomer("rd_carnage_boomer", "1.0", FCVAR_CHEAT, "Multiplies boomers in the level by this amount.");
+ConVar rd_carnage_ranger("rd_carnage_ranger", "1.0", FCVAR_CHEAT, "Multiplies rangers in the level by this amount.");
+ConVar rd_carnage_mortar("rd_carnage_mortar", "1.0", FCVAR_CHEAT, "Multiplies mortars in the level by this amount.");
+ConVar rd_carnage_shamen("rd_carnage_shamen", "1.0", FCVAR_CHEAT, "Multiplies shamen in the level by this amount.");
+ConVar rd_carnage_buzzer("rd_carnage_buzzer", "1.0", FCVAR_CHEAT, "Multiplies buzzer in the level by this amount.");
+ConVar rd_carnage_drone("rd_carnage_drone", "1.0", FCVAR_CHEAT, "Multiplies drones in the level by this amount.");
+ConVar rd_carnage_queen("rd_carnage_queen", "1.0", FCVAR_CHEAT, "Multiplies queen in the level by this amount.");
+ConVar rd_carnage_grub("rd_carnage_grub", "1.0", FCVAR_CHEAT, "Multiplies grub in the level by this amount.");
+ConVar rd_cc_debug_spawners("rd_cc_debug_spawners", "0", FCVAR_NONE, "Shows debug messages on spawners.");
+ConVar rd_spawner_impossimode("rd_spawner_impossimode", "0", FCVAR_CHEAT, "Makes ALL spawners infinite");
 
 BEGIN_DATADESC( CASW_Spawner )
-	DEFINE_KEYFIELD( m_nMaxLiveAliens,			FIELD_INTEGER,	"MaxLiveAliens" ),
-	DEFINE_KEYFIELD( m_nNumAliens,				FIELD_INTEGER,	"NumAliens" ),	
+	DEFINE_KEYFIELD( m_nSetMaxLiveAliens,		FIELD_INTEGER,	"MaxLiveAliens" ),
+	DEFINE_KEYFIELD( m_nSetNumAliens,			FIELD_INTEGER,	"NumAliens" ),	
 	DEFINE_KEYFIELD( m_bInfiniteAliens,			FIELD_BOOLEAN,	"InfiniteAliens" ),
-	DEFINE_KEYFIELD( m_flSpawnInterval,			FIELD_FLOAT,	"SpawnInterval" ),
+    DEFINE_KEYFIELD( m_flSetSpawnInterval,      FIELD_FLOAT,	"SpawnInterval" ),
 	DEFINE_KEYFIELD( m_flSpawnIntervalJitter,	FIELD_FLOAT,	"SpawnIntervalJitter" ),
 	DEFINE_KEYFIELD( m_AlienClassNum,			FIELD_INTEGER,	"AlienClass" ),
 	DEFINE_KEYFIELD( m_SpawnerState,			FIELD_INTEGER,	"SpawnerState" ),
-	DEFINE_INPUT(    m_bAllowDirectorSpawns,    FIELD_BOOLEAN,  "AllowDirectorSpawns" ),
+    DEFINE_INPUT(    m_bAllowDirectorSpawns,    FIELD_BOOLEAN,  "AllowDirectorSpawns" ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID,	"SpawnOneAlien",	InputSpawnAlien ),
 	DEFINE_INPUTFUNC( FIELD_VOID,	"StartSpawning",	InputStartSpawning ),
@@ -84,6 +105,8 @@ void CASW_Spawner::Spawn()
 	m_nCurrentLiveAliens = 0;
 
 	// trigger any begin state stuff
+	if (rd_spawner_impossimode.GetBool())
+		m_bInfiniteAliens = true;
 	SetSpawnerState(m_SpawnerState);
 }
 
@@ -140,12 +163,33 @@ bool CASW_Spawner::CanSpawn( const Vector &vecHullMins, const Vector &vecHullMax
 		return false;
 
 	// too many alive already?
-	if (m_nMaxLiveAliens>0 && m_nCurrentLiveAliens>=m_nMaxLiveAliens)
+	if (gEntList.NumberOfEdicts() > 1900)
+	{
+		if (rd_cc_debug_spawners.GetBool())
+		{
+			Warning("Unable to spawn alien: edict# = %i\n", m_AlienClassNum, gEntList.NumberOfEdicts());
+		}
 		return false;
+    }
+
+	if (m_nMaxLiveAliens>0 && m_nCurrentLiveAliens>=m_nMaxLiveAliens)
+	{
+		if (rd_cc_debug_spawners.GetInt() == 3)
+		{
+			Warning("Unable to spawn alien: too many alive\n");
+		}
+		return false;
+    }
 
 	// have we run out?
 	if (!m_bInfiniteAliens && m_nNumAliens<=0)
+	{
+		if (rd_cc_debug_spawners.GetBool())
+		{
+			Warning("Unable to spawn alien: out of aliens\n");
+		}
 		return false;
+	}
 
 	return BaseClass::CanSpawn( vecHullMins, vecHullMaxs );
 }
@@ -201,6 +245,159 @@ void CASW_Spawner::MissionStart()
 			Msg("  removed infinite and set num aliens to %d\n", m_nNumAliens);
 	}
 
+	m_nNumAliens = m_nSetNumAliens;
+	m_nMaxLiveAliens = m_nSetMaxLiveAliens;
+
+	if (rd_carnage_drone.GetFloat() > 0 && m_AlienClassNum == g_nDroneClassEntry)  //Regular drones
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_drone.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_drone.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_drone.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_drone_jumper.GetFloat() > 0 && m_AlienClassNum == g_nDroneJumperClassEntry)  //Drone jumpers
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_drone_jumper.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_drone_jumper.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_drone_jumper.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_drone_uber.GetFloat() > 0 && m_AlienClassNum == g_nUberDroneClassEntry)  //Uber drones
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_drone_uber.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_drone_uber.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_drone_uber.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+    }
+
+	if (rd_carnage_buzzer.GetFloat() > 0 && m_AlienClassNum == g_nBuzzerClassEntry)  //Buzzers
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_buzzer.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_buzzer.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_buzzer.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_parasite.GetFloat() > 0 && m_AlienClassNum == g_nParasiteClassEntry)  //Parasites
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_parasite.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_parasite.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_parasite.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_shieldbug.GetFloat() > 0 && m_AlienClassNum == g_nShieldbugClassEntry)  //Shieldbugs
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_shieldbug.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_shieldbug.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_shieldbug.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_harvester.GetFloat() > 0 && m_AlienClassNum == g_nHarvesterClassEntry)  //Harvesters
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_harvester.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_harvester.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_harvester.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_parasite_defanged.GetFloat() > 0 && m_AlienClassNum == g_nSafeParasiteClassEntry)  //Defanged parasites
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_parasite_defanged.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_parasite_defanged.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_parasite_defanged.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_boomer.GetFloat() > 0 && m_AlienClassNum == g_nBoomerClassEntry) //Boomers
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_boomer.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_boomer.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_boomer.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_ranger.GetFloat() > 0 && m_AlienClassNum == g_nRangerClassEntry) //Rangers
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_ranger.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_ranger.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_ranger.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_mortar.GetFloat() > 0 && m_AlienClassNum == g_nMortarClassEntry) //Mortars
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_mortar.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_mortar.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_mortar.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_shamen.GetFloat() > 0 && m_AlienClassNum == g_nShamenClassEntry) //Shamen
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_shamen.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_shamen.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_shamen.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_queen.GetFloat() > 0 && m_AlienClassNum == g_nQueenClassEntry)	 //Queen
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_queen.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_queen.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_queen.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_grub.GetFloat() > 0 && m_AlienClassNum == g_nGrubClassEntry)	 //Grub
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_grub.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_grub.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_grub.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_antlionguard_normal.GetFloat() > 0 && m_AlienClassNum == npc_antlionguard_normal)	 //antlionguard normal
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_antlionguard_normal.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_antlionguard_normal.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_antlionguard_normal.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_carnage_antlionguard_cavern.GetFloat() > 0 && m_AlienClassNum == npc_antlionguard_cavern)	 //antlionguard cavern
+	{
+		m_nNumAliens = m_nSetNumAliens * rd_carnage_antlionguard_cavern.GetFloat();
+		m_nMaxLiveAliens = m_nSetMaxLiveAliens * rd_carnage_antlionguard_cavern.GetFloat();
+		m_flSpawnInterval = m_flSetSpawnInterval / rd_carnage_antlionguard_cavern.GetFloat();
+		if (m_flSpawnInterval < rd_carnage_min_interval.GetFloat())
+			m_flSpawnInterval = rd_carnage_min_interval.GetFloat();
+	}
+
+	if (rd_cc_debug_spawners.GetBool())
+	{
+		Msg("Set #aliens to %i, max live to %i, interval to %f\n", m_nNumAliens, m_nMaxLiveAliens, m_flSpawnInterval);
+	}
+		if (rd_spawner_impossimode.GetBool())
+			m_bInfiniteAliens = true;
 	if (m_SpawnerState == SST_StartSpawningWhenMissionStart)
 		SetSpawnerState(SST_Spawning);
 }
@@ -228,7 +425,7 @@ void CASW_Spawner::SetSpawnerState(SpawnerState_t newState)
 }
 
 void CASW_Spawner::SpawnerThink()
-{	
+{
 	// calculate jitter
 	float fInterval = random->RandomFloat(1.0f - m_flSpawnIntervalJitter, 1.0f + m_flSpawnIntervalJitter) * m_flSpawnInterval;
 	SetNextThink( gpGlobals->curtime + fInterval );
@@ -313,7 +510,7 @@ bool CASW_Spawner::ApplyCarnageMode( float fScaler, float fInvScaler )
 		m_flSpawnInterval *= fInvScaler;
 
 		return true;
-	}	
+	}
 
 	return false;
 }
@@ -340,7 +537,6 @@ int	CASW_Spawner::DrawDebugTextOverlays()
 	return text_offset;
 }
 
-
 void ASW_ApplyCarnage_f(float fScaler)
 {
 	if ( fScaler <= 0 )
@@ -364,6 +560,7 @@ void ASW_ApplyCarnage_f(float fScaler)
 			}
 		}
 	}
+	DevMsg("%i asw_spawners had their output changed by asw_carnage.\n", iSpawnersChanged);
 }
 
 void ASW_ApplyInfiniteSpawners_f(void)

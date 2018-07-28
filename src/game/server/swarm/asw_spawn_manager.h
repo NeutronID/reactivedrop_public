@@ -121,8 +121,23 @@ private:
 	CUtlVector<TriggerMultiple_t> m_EscapeTriggers;
 };
 
+// Array indices of drones.  Used by carnage mode.
 extern const int g_nDroneClassEntry;
+extern const int g_nBuzzerClassEntry;
+extern const int g_nParasiteClassEntry;
+extern const int g_nShieldbugClassEntry;
+extern const int g_nGrubClassEntry;
 extern const int g_nDroneJumperClassEntry;
+extern const int g_nHarvesterClassEntry;
+extern const int g_nSafeParasiteClassEntry;
+extern const int g_nQueenClassEntry;
+extern const int g_nBoomerClassEntry;
+extern const int g_nRangerClassEntry;
+extern const int g_nMortarClassEntry;
+extern const int g_nShamenClassEntry;
+extern const int g_nUberDroneClassEntry;
+extern const int npc_antlionguard_normal;
+extern const int npc_antlionguard_cavern;
 
 CASW_Spawn_Manager* ASWSpawnManager();
 

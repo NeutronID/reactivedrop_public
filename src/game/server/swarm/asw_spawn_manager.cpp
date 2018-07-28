@@ -85,7 +85,21 @@ ASW_Alien_Class_Entry g_Aliens[]=
 
 // Array indices of drones.  Used by carnage mode.
 const int g_nDroneClassEntry = 0;
+const int g_nBuzzerClassEntry = 1;
+const int g_nParasiteClassEntry = 2;
+const int g_nShieldbugClassEntry = 3;
+const int g_nGrubClassEntry = 4;
 const int g_nDroneJumperClassEntry = 5;
+const int g_nHarvesterClassEntry = 6;
+const int g_nSafeParasiteClassEntry = 7;
+const int g_nQueenClassEntry = 8;
+const int g_nBoomerClassEntry = 9;
+const int g_nRangerClassEntry = 10;
+const int g_nMortarClassEntry = 11;
+const int g_nShamenClassEntry = 12;
+const int g_nUberDroneClassEntry = 13;
+const int npc_antlionguard_normal = 14;
+const int npc_antlionguard_cavern = 15;
 
 int CASW_Spawn_Manager::GetNumAlienClasses()
 {
@@ -258,6 +272,7 @@ void CASW_Spawn_Manager::Update()
 		}
 		else if ( m_vecHordePosition == vec3_origin )
 		{
+            if (asw_director_debug.GetBool())
 			Msg( "Warning: Had horde to spawn but no position, clearing.\n" );
 			m_iHordeToSpawn = 0;
 			m_pHordeDefinition = NULL;
@@ -426,6 +441,7 @@ bool CASW_Spawn_Manager::AddHorde( int iHordeSize, CASW_Spawn_Definition *pSpawn
 	{
 		if ( !FindHordePosition() )
 		{
+            if (asw_director_debug.GetBool()) // don't spam in console about an positions not found
 			Msg("Error: Failed to find horde position\n");
 			return false;
 		}
