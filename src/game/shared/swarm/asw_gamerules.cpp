@@ -92,6 +92,7 @@
 	#include "asw_achievements.h"
 	#include "asw_director.h"
 	#include "team.h"
+    #include "entitylist.h"
 #endif
 #include "fmtstr.h"
 #include "game_timescale_shared.h"
@@ -1139,7 +1140,7 @@ CAlienSwarm::CAlienSwarm()
 	m_MapResetFilter.AddKeepEntity("scene_manager");
 	m_MapResetFilter.AddKeepEntity("event_queue_saveload_proxy");
 	m_MapResetFilter.AddKeepEntity("ai_network");
-
+	m_MapResetFilter.AddKeepEntity("asw_alien_pruner");
 	// riflemod: keep health regen entity all the time 
 	m_MapResetFilter.AddKeepEntity("asw_health_regen");
 	//m_MapResetFilter.AddKeepEntity("asw_item_regen");

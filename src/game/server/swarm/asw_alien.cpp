@@ -675,6 +675,9 @@ void CASW_Alien::CallBehaviorThink()
 	}
 }
 
+ConVar rd_alien_prune_radius("rd_alien_prune_radius", "3000", FCVAR_NONE, "Radius from nearest marine at which aliens are removed.");
+ConVar rd_alien_prune("rd_alien_prune", "1", FCVAR_NONE, "Set to 1 to enable alien pruning.");
+
 void CASW_Alien::NPCThink( void )
 {
 	BaseClass::NPCThink();
@@ -709,6 +712,34 @@ void CASW_Alien::NPCThink( void )
 
 	UpdateThawRate();
 
+	if (rd_alien_prune.GetBool() && strcmp(this->GetClassname(),"asw_mortarbug") !=0 && strcmp(this->GetClassname(),"asw_harvester") !=0 && strcmp(this->GetClassname(),"asw_egg") !=0 && strcmp(this->GetClassname(),"asw_boomer") !=0 && strcmp(this->GetClassname(),"asw_shieldbug") !=0 && strcmp(this->GetClassname(),"asw_queen") !=0)
+	{
+		bool bMarinesAlive = false;
+		for (int i = 0; i < ASW_MAX_MARINE_RESOURCES; i++)
+		{
+			CASW_Marine_Resource *pResource = ASWGameResource()->GetMarineResource(i);
+			if (pResource)
+			{
+				CASW_Marine *pMarine = pResource->GetMarineEntity();
+				if (pMarine)
+				{
+					bMarinesAlive = true;
+
+					// Check if the marine is close enough to this alien to save it.
+					if (pMarine->GetAbsOrigin().DistTo(GetAbsOrigin()) <= rd_alien_prune_radius.GetFloat())
+					{
+						SetTagState(ASW_TAG_SAFE);    
+						break;
+					}
+				}
+			}
+		}
+
+		// Make sure we have at least one marine actually alive before we remove aliens.
+		if ( bMarinesAlive && (GetTagState() != ASW_TAG_SAFE))
+			UTIL_Remove(this);
+		SetTagState(ASW_TAG_REMOVE);
+	}
 	m_flLastThinkTime = gpGlobals->curtime;
 }
 

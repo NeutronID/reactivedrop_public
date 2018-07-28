@@ -662,6 +662,7 @@ exit 1
     <ClCompile Include="ambientgeneric.cpp" />
     <ClCompile Include="asw_health_regen.cpp" />
     <ClCompile Include="asw_item_regen.cpp" />
+    <ClCompile Include="asw_prune_aliens.cpp" />
     <ClCompile Include="baseanimating.cpp" />
     <ClCompile Include="BaseAnimatingOverlay.cpp" />
     <ClCompile Include="basecombatcharacter.cpp" />
@@ -1640,6 +1641,7 @@ exit 1
     <ClInclude Include="ai_utils.h" />
     <ClInclude Include="ai_waypoint.h" />
     <ClInclude Include="ambientgeneric.h" />
+    <ClInclude Include="asw_prune_aliens.h" />
     <ClInclude Include="baseanimating.h" />
     <ClInclude Include="BaseAnimatingOverlay.h" />
     <ClInclude Include="basecombatcharacter.h" />
