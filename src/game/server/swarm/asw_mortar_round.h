@@ -28,6 +28,7 @@ public:
 	virtual void	SetFuseLength( float fSeconds );
 	virtual void	SetClusters(int iClusters, bool bMaster = false);
 	virtual void	CreateEffects();
+    virtual int     OnTakeDamage(const CTakeDamageInfo &info);
 
 private:
 			void			Touch( CBaseEntity *pOther );

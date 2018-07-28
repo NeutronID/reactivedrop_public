@@ -26,6 +26,9 @@ static ConVar asw_mortar_round_radius_check_scale( "asw_mortar_round_radius_chec
 static ConVar asw_mortar_round_child_fuse_min( "asw_mortar_round_child_fuse_min", "0.5", FCVAR_CHEAT, "Cluster grenade child cluster's minimum fuse length" );
 static ConVar asw_mortar_round_child_fuse_max( "asw_mortar_round_child_fuse_max", "1.0", FCVAR_CHEAT, "Cluster grenade child cluster's maximum fuse length" );
 ConVar asw_mortar_round_gravity( "asw_mortar_round_gravity", "0.8f", FCVAR_CHEAT, "Gravity of mortar bug's mortar" );
+ConVar rd_mortarbug_round_damage( "rd_mortarbug_round_damage", "80.f", FCVAR_CHEAT );
+ConVar rd_mortarbug_round_radius( "rd_mortarbug_round_radius", "220.f", FCVAR_CHEAT );
+ConVar rd_mortarbug_round_mass( "rd_mortarbug_round_mass", "10", FCVAR_CHEAT, "Mass of mortarbug grenade");
 
 LINK_ENTITY_TO_CLASS( asw_mortar_round, CASW_Mortar_Round );
 
@@ -47,12 +50,12 @@ void CASW_Mortar_Round::Spawn( void )
 	Precache();
 	SetModel( ASW_MORTAR_ROUND_MODEL );
 	
-	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
+    SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
 
-	m_flDamage		= 80.0f;
-	m_DmgRadius		= 220.0f;
+	m_flDamage		= rd_mortarbug_round_damage.GetFloat();
+	m_DmgRadius		= rd_mortarbug_round_radius.GetFloat();
 
-	m_takedamage	= DAMAGE_NO;
+	m_takedamage	= DAMAGE_YES;
 	m_iHealth = 1;
 
 	m_bModelOpening = false;
@@ -62,7 +65,7 @@ void CASW_Mortar_Round::Spawn( void )
 	SetGravity( asw_mortar_round_gravity.GetFloat() );
 	SetFriction( asw_vindicator_grenade_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-	SetCollisionGroup( ASW_COLLISION_GROUP_PASSABLE );
+	SetCollisionGroup( ASW_COLLISION_GROUP_PLAYER_MISSILE );
 
 	SetTouch( &CASW_Mortar_Round::Touch );
 
@@ -81,7 +84,7 @@ void CASW_Mortar_Round::Spawn( void )
 
 	ResetSequence( LookupSequence( "MortarBugProjectile_Closed" ) );
 
-	//EmitSound( "ASWGrenade.Alarm" );
+	EmitSound( "ASWGrenade.Alarm" );
 	SetFuseLength( asw_mortar_round_fuse.GetFloat() );	
 
 	EmitSound( "ASW_Ranger_Projectile.Spawned" );
@@ -335,6 +338,20 @@ void CASW_Mortar_Round::Detonate( )
 float CASW_Mortar_Round::GetEarliestAOEDetonationTime( )
 {
 	return gpGlobals->curtime + asw_mortar_round_min_detonation_time.GetFloat();
+}
+
+int CASW_Mortar_Round::OnTakeDamage(const CTakeDamageInfo &info)
+{
+    if ( info.GetAttacker() && info.GetAttacker()->IsNPC() )
+    {
+        if (! (info.GetDamageType() & DMG_BLAST) ) //disallow to be damaged with grenades
+        {
+			Vector vecForce = info.GetDamageForce() / rd_mortarbug_round_mass.GetFloat();
+            vecForce.z = random->RandomFloat(250, 300);
+            ApplyAbsVelocityImpulse(vecForce);
+        }
+    }
+    return 0;
 }
 
 void CASW_Mortar_Round::SetClusters( int iClusters, bool bMaster )
