@@ -131,6 +131,7 @@ LINK_ENTITY_TO_CLASS(asw_door, CASW_Door);
 ConVar asw_door_drone_damage_scale("asw_door_drone_damage_scale", "2.0f", FCVAR_CHEAT, "Damage scale for drones hitting doors");
 ConVar asw_door_seal_damage_reduction("asw_door_seal_damage_reduction", "0.6f", FCVAR_CHEAT, "Alien damage scale when door is fully sealed");
 ConVar asw_door_physics("asw_door_physics", "0", FCVAR_CHEAT, "If set, doors will turn into vphysics objects upon death.");
+ConVar rd_door_melee_damage("rd_door_melee_damage", "0", FCVAR_CHEAT, "Allow doors to take melee damage.");
 extern ConVar asw_debug_marine_chatter;
 extern ConVar asw_difficulty_alien_damage_step;
 
@@ -314,6 +315,7 @@ void CASW_Door::Spawn()
 	{
 		VisibilityMonitor_AddEntity( this, asw_visrange_generic.GetFloat() * 0.9f, &CASW_Door::DestroyVismonCallback, &CASW_Door::DestroyVismonEvaluator );
 	}
+	AddEffects(EF_NOSHADOW);	// No crappy door shadows on maps where mapmakers forgot to disable them.
 }
 
 bool CASW_Door::DestroyVismonEvaluator( CBaseEntity *pVisibleEntity, CBasePlayer *pViewingPlayer )
@@ -1211,12 +1213,16 @@ int CASW_Door::OnTakeDamage( const CTakeDamageInfo &info )
 
 				damage *= asw_door_drone_damage_scale.GetFloat();
 			}
-			else if (info.GetAttacker()->Classify() == CLASS_ASW_MARINE
-					&& info.GetDamageType() & DMG_CLUB)	// make doors immune to kick damage
-			{
-				damage *= 0;
-			}			
-			
+			else
+            if (!rd_door_melee_damage.GetBool())
+            {
+                if (info.GetAttacker()->Classify() == CLASS_ASW_MARINE
+			    && info.GetDamageType() & DMG_CLUB)	// make doors immune to kick damage
+			    {
+				    damage *= 0;
+			    }
+			}
+
 			// reduce damage from welding
 			if (GetTotalSealTime() > 0)
 			{
