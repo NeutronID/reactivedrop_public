@@ -47,6 +47,7 @@ ConVar asw_debug_mortarbug( "asw_debug_mortarbug", "0", FCVAR_NONE, "Display mor
 ConVar asw_mortarbug_face_target("asw_mortarbug_face_target", "1", FCVAR_CHEAT, "Mortarbug faces his target when moving" );
 ConVar rd_mortarbug_health( "rd_mortarbug_health", "350", FCVAR_CHEAT, "Health of the mortarbug" );
 
+ConVar rd_mortarbug_spit_rate("rd_mortarbug_spit_rate", "3.0", FCVAR_CHEAT, "Sets the firing rate for mortarbug.");
 extern ConVar rd_deagle_bigalien_dmg_scale;
 
 extern ConVar sv_gravity;
@@ -194,7 +195,7 @@ void CASW_Mortarbug::HandleAnimEvent( animevent_t *pEvent )
 		// The point in our spit animation where we should actually spawn the projectile	
 		AttackSound();
 		SpawnProjectile();
-		m_flNextAttack = gpGlobals->curtime + 2.0f;
+		m_flNextAttack = gpGlobals->curtime + rd_mortarbug_spit_rate.GetFloat();
 		return;
 	}
 	else if ( nEvent == AE_MORTARBUG_CHARGE )
@@ -294,8 +295,8 @@ int CASW_Mortarbug::SelectMortarbugCombatSchedule()
 	if ( nSched != SCHED_NONE )
 	{
 		// if we flinch, push forward the next attack
-		float spawn_interval = 2.0f;
-		m_flNextAttack = gpGlobals->curtime + spawn_interval;
+		float spawn_interval = rd_mortarbug_spit_rate.GetFloat();
+		m_flNextAttack = gpGlobals->curtime + rd_mortarbug_spit_rate.GetFloat();
 		return nSched;
 	}
 
@@ -752,9 +753,9 @@ bool CASW_Mortarbug::InnateWeaponLOSCondition( const Vector &ownerPos, const Vec
 	return BaseClass::InnateWeaponLOSCondition( ownerPos, targetPos, bSetConditions );
 }
 
-//
+//---------------------------------------------
 //	FIXME: Create this in a better fashion!
-//
+//---------------------------------------------
 
 Vector VecCheckThrowTolerance( CBaseEntity *pEdict, const Vector &vecSpot1, Vector vecSpot2, float flSpeed, float flTolerance )
 {
