@@ -44,7 +44,7 @@ ConVar rd_prespawn_antlionguard("rd_prespawn_antlionguard", "0", FCVAR_CHEAT, "I
 ConVar rd_horde_two_sided( "rd_horde_two_sided", "0", FCVAR_CHEAT, "If 1 and Onslaught is enabled a 2nd horde will come from opposite side, e.g. north and south" );
 ConVar rd_director_spawner_range("rd_director_spawner_range", "600", FCVAR_CHEAT, "Radius around expected spawn point that the director can look for spawners");
 ConVar rd_director_spawner_bias("rd_director_spawner_bias", "0.9", FCVAR_CHEAT, "0 (search from the node) to 1 (search from the nearest marine)", true, 0, true, 1);
-
+ConVar rd_invisible_buffer_alien("rd_invisible_buffer_alien", "25", FCVAR_CHEAT, "Buffer to prevent aliens from spawning partly inside walls.");
 CASW_Spawn_Manager::CASW_Spawn_Manager()
 {
 	m_nAwakeAliens = 0;
@@ -1055,11 +1055,12 @@ CBaseEntity *CASW_Spawn_Manager::SpawnAlienAt( CASW_Spawn_NPC *pNPC, const Vecto
 bool CASW_Spawn_Manager::ValidSpawnPoint( const Vector &vecPosition, const Vector &vecMins, const Vector &vecMaxs, bool bCheckGround, float flMarineNearDistance )
 {
 	// check if we can fit there
+    Vector vecBuffer = Vector(rd_invisible_buffer_alien.GetFloat(), rd_invisible_buffer_alien.GetFloat(), 0);
 	trace_t tr;
 	UTIL_TraceHull( vecPosition,
 		vecPosition + Vector( 0, 0, 1 ),
-		vecMins,
-		vecMaxs,
+		vecMins - vecBuffer,
+		vecMaxs + vecBuffer,
 		MASK_NPCSOLID,
 		NULL,
 		COLLISION_GROUP_NONE,
