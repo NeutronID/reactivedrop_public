@@ -571,7 +571,7 @@ void CASW_Marine::DoDamagePowerupEffects( CBaseEntity *pTarget, CTakeDamageInfo 
 			// TODO: merge over the new ASW_Ignite to account for DPS?
 			pSpawnableNPC->ASW_Ignite( flFireDuration, flDamagePerSecond, info.GetAttacker() );
 			*/
-			pSpawnableNPC->ASW_Ignite( 2.0f, 0, info.GetAttacker(), info.GetWeapon() );
+			pSpawnableNPC->ASW_Ignite( 3.0f, 0, info.GetAttacker(), info.GetWeapon() );
 		}
 	}
 
@@ -580,7 +580,7 @@ void CASW_Marine::DoDamagePowerupEffects( CBaseEntity *pTarget, CTakeDamageInfo 
 		CAI_BaseNPC *pNPC = dynamic_cast<CAI_BaseNPC*>( pTarget );
 		if ( pNPC )
 		{
-			pNPC->Freeze( 100.0f, this );
+			pNPC->Freeze( 0.2f, this ); // fix the freeze effect duration
 		}
 	}
 
@@ -630,7 +630,7 @@ void CASW_Marine::DoDamagePowerupEffects( CBaseEntity *pTarget, CTakeDamageInfo 
 		CUtlVector<CBaseEntity*> shocked;
 		int iNumShocked = 0; // TODO: Use size of shocked vector for this?
 		shocked.AddToTail( pTarget );
-		float flArcDistSqr = 300.0f * 300.0f;
+		float flArcDistSqr = 80.0f * 80.0f; //  Fix the spread area effect ElectroStun
 		float flShockDamage = info.GetDamage();	// TODO: base on attribute?
 		float flDamageReduction = flShockDamage / (float)iMaxArcs; // how much damage each arc loses
 		Vector vecShockSrc = info.GetDamagePosition();
@@ -735,7 +735,7 @@ void CASW_Marine::FireBullets( const FireBulletsInfo_t &info )
 	else
 	{
 		FireRegularBullets(info);
-	}	
+	}
 }
 
 void CASW_Marine::FireRegularBullets( const FireBulletsInfo_t &info )
@@ -1273,6 +1273,7 @@ void CASW_Marine::FirePenetratingBullets( const FireBulletsInfo_t &info, int iMa
 				dmgInfo.ScaleDamageForce( info.m_flDamageForceScale );
 				dmgInfo.SetAmmoType( info.m_iAmmoType );
 				dmgInfo.SetWeapon( GetActiveASWWeapon() );
+				DoDamagePowerupEffects( tr.m_pEnt, dmgInfo, vecFinalDir, &tr ); // fix when - experts can not use powerup bonus
 				tr.m_pEnt->DispatchTraceAttack( dmgInfo, vecFinalDir, &tr );
 			
 				if ( !bHitWater || (info.m_nFlags & FIRE_BULLETS_ALLOW_WATER_SURFACE_IMPACTS) )
