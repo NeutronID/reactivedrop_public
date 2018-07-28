@@ -29,6 +29,8 @@ END_SEND_TABLE()
 BEGIN_DATADESC( CASW_Sentry_Top_Flamer )
 END_DATADESC()
 
+ConVar rd_sentry_top_flamer_damage("rd_sentry_top_flamer_damage", "4.0f", FCVAR_CHEAT, "Sentry top flamer fire damage.");
+ConVar rd_sentry_top_flamer_range("rd_sentry_top_flamer_range", "375", FCVAR_CHEAT, "Sentry top flamer set sentry fire range.");
 extern ConVar asw_weapon_max_shooting_distance;
 extern ConVar asw_weapon_force_scale;
 extern ConVar asw_difficulty_alien_health_step;
@@ -39,13 +41,12 @@ void CASW_Sentry_Top_Flamer::SetTopModel()
 	SetModel(SENTRY_TOP_MODEL);
 }
 
-
 #define ASW_SENTRY_FIRE_RATE 0.1f		// time in seconds between each shot
 #define ASW_SENTRY_FIRE_ANGLE_THRESHOLD 3
 
 CASW_Sentry_Top_Flamer::CASW_Sentry_Top_Flamer(  int projectileVelocity  ) : m_bFiring(false), m_flPitchHack(false), m_nProjectileVelocity( projectileVelocity ? projectileVelocity : CASW_Weapon_Flamer::FLAMER_PROJECTILE_AIR_VELOCITY )
 {
-	m_flShootRange = 375.0f;
+	m_flShootRange = rd_sentry_top_flamer_range.GetFloat();
 
 	// increase turn rate until I get better leading code in (so it can actually hit something)
 	m_fTurnRate *= 3.0f;
@@ -54,15 +55,8 @@ CASW_Sentry_Top_Flamer::CASW_Sentry_Top_Flamer(  int projectileVelocity  ) : m_b
 /// @TODO attrib hooks
 int CASW_Sentry_Top_Flamer::GetSentryDamage()
 {
-	float flDamage = 4.0f;
-	if ( ASWGameRules() )
-	{
-		ASWGameRules()->ModifyAlienHealthBySkillLevel( flDamage );
-	}
-
-	return flDamage * ( GetSentryBase() ? GetSentryBase()->m_fDamageScale : 1.0f );
+    return rd_sentry_top_flamer_damage.GetInt();
 }
-
 
 void CASW_Sentry_Top_Flamer::CheckFiring()
 {
@@ -104,7 +98,6 @@ void CASW_Sentry_Top_Flamer::CheckFiring()
 		Fire();
 	}
 }
-
 
 ITraceFilter *CASW_Sentry_Top_Flamer::GetVisibilityTraceFilter()
 {
@@ -258,11 +251,6 @@ void CASW_Sentry_Top_Flamer::FireProjectiles( int numShotsToFire, ///< number of
 		pFlames->SetHurtIgnited( true );
 	}
 }
-
-
-
-
-
 
 /// Compute the necessary trajectory for a projectile to hit a moving object.
 /// Given a static gun position, a moving target, the target's velocity vector,
