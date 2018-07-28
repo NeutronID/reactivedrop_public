@@ -1199,6 +1199,7 @@ CAlienSwarm::CAlienSwarm()
 
 	m_fLastPowerupDropTime = 0;
 	m_flTechFailureRestartTime = 0.0f;
+	m_fWeaponDisassemble = ASW_USE_KEY_HOLD_SENTRY_TIME;   // set as default of disassemble time
 
 	m_bSentLeaderboardReady = false;
 

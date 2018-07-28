@@ -1044,7 +1044,7 @@ void CASW_Player::PlayerUse()
 	
 			if ( m_nButtons & IN_USE )
 			{
-				float flUseHoldTime = ASW_USE_KEY_HOLD_SENTRY_TIME;
+				float flUseHoldTime = ASWGameRules() ? ASWGameRules()->m_fWeaponDisassemble : ASW_USE_KEY_HOLD_SENTRY_TIME;
 
 				CASW_Marine *pUsableMarine = dynamic_cast<CASW_Marine*>( pEnt );
 				if ( pUsableMarine && pUsableMarine->m_bKnockedOut )

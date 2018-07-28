@@ -101,6 +101,7 @@ public:
 	
 	float GetMarineDeathCamInterp( bool bIgnoreCvar = false );
 
+	float m_fWeaponDisassemble;
 #else
 
 	DECLARE_SERVERCLASS_NOBASE(); // This makes datatables able to access our private vars.
@@ -149,6 +150,8 @@ public:
 	virtual bool			ClientCommand( CBaseEntity *pEdict, const CCommand &args );
 	virtual void			ClientCommandKeyValues( edict_t *pEntity, KeyValues *pKeyValues );
 	void OnPlayerFullyJoined( CASW_Player *pPlayer );
+
+	float m_fWeaponDisassemble;
 
 	// powerups
 	virtual void DropPowerup( CBaseEntity *pSource, const CTakeDamageInfo &info, const char *pszSourceClass );

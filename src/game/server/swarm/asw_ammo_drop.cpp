@@ -204,6 +204,8 @@ void CASW_Ammo_Drop::MarineStoppedUsing(CASW_Marine* pMarine)
 
 bool CASW_Ammo_Drop::IsUsable(CBaseEntity *pUser)
 {
+   if (ASWGameRules())
+       ASWGameRules()->m_fWeaponDisassemble = ASW_USE_KEY_HOLD_SENTRY_TIME;
 	return (pUser && pUser->GetAbsOrigin().DistTo(GetAbsOrigin()) < ASW_MARINE_USE_RADIUS);	// near enough?
 }
 
