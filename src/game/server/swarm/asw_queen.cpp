@@ -165,7 +165,7 @@ void CASW_Queen::Spawn( void )
 	m_hDiver = CASW_Queen_Divers::Create_Queen_Divers(this);
 	//CollisionProp()->SetSurroundingBoundsType( USE_HITBOXES );
 
-	m_takedamage = DAMAGE_NO;	// queen is invulnerable until she finds her first enemy
+	m_takedamage = DAMAGE_YES;
 		
 	m_hRetreatSpot = gEntList.FindEntityByClassname( NULL, "asw_queen_retreat_spot" );
 }

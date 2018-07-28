@@ -85,7 +85,7 @@ void CASW_Mortarbug::Spawn( void )
 
 	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 );
 
-	m_takedamage = DAMAGE_NO;	// alien is invulnerable until she finds her first enemy
+	m_takedamage = DAMAGE_YES;
 }
 
 void CASW_Mortarbug::Precache( void )

@@ -132,7 +132,7 @@ void CASW_Shieldbug::Spawn( void )
 
 	SetCollisionGroup( ASW_COLLISION_GROUP_BIG_ALIEN );
 
-	m_takedamage = DAMAGE_NO;	// alien is invulnerable until she finds her first enemy
+	m_takedamage = DAMAGE_YES;
 
 	m_bNeverInstagib = true;
 }

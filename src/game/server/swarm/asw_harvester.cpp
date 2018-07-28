@@ -80,7 +80,7 @@ void CASW_Harvester::Spawn( void )
 
 	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 );
 
-	m_takedamage = DAMAGE_NO;	// alien is invulnerable until she finds her first enemy
+	m_takedamage = DAMAGE_YES;
 	m_bNeverRagdoll = true;
 }
 
@@ -93,6 +93,7 @@ void CASW_Harvester::Precache( void )
 	PrecacheScriptSound( "ASW_Harvester.Alert" );
 	PrecacheScriptSound( "ASW_Harvester.Sniffing" );
 
+    PrecacheModel("models/swarm/harvester/Harvester.mdl");
 	UTIL_PrecacheOther( "asw_parasite_defanged" );
 
 	BaseClass::Precache();
