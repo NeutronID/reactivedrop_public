@@ -85,6 +85,10 @@ void CASW_Sentry_Top_Machinegun::Fire()
 	m_fNextFireTime = fsel( gpGlobals->curtime - m_fNextFireTime - gpGlobals->interval_per_tick * 3.0f, gpGlobals->curtime, m_fNextFireTime ); 
 	CASW_Sentry_Base* const pBase = GetSentryBase();
 
+	// sentry firing tesla
+	if (pBase)
+        SentryTesla();
+
 	const float fPriorTickTime = gpGlobals->curtime - gpGlobals->interval_per_tick;
 	do 
 	{

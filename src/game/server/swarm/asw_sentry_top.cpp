@@ -12,6 +12,8 @@
 #include "asw_drone_advanced.h"
 #include "asw_parasite.h"
 #include "asw_deathmatch_mode.h"
+#include "asw_weapon_tesla_trap.h"
+#include "asw_trace_filter_shot.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -29,6 +31,7 @@ IMPLEMENT_SERVERCLASS_ST(CASW_Sentry_Top, DT_ASW_Sentry_Top)
 END_SEND_TABLE()
 
 ConVar asw_sentry_friendly_target("asw_sentry_friendly_target", "0", FCVAR_REPLICATED, "Whether the sentry targets friendlies or not");
+ConVar rd_sentry_tesla("rd_sentry_tesla", "0", FCVAR_CHEAT, "Enables Sentry firing tesla.");
 extern ConVar asw_sentry_friendly_fire_scale;
 
 
@@ -524,4 +527,55 @@ void CASW_Sentry_Top::MakeTracer( const Vector &vecTracerSrc, const trace_t &tr,
 	WRITE_FLOAT( tr.endpos.y );
 	WRITE_FLOAT( tr.endpos.z );
 	MessageEnd();
+}
+
+void CASW_Sentry_Top::SentryTesla()
+{
+	if (rd_sentry_tesla.GetBool())
+	{
+		CAI_BaseNPC *pNPC = dynamic_cast<CAI_BaseNPC*>(m_hEnemy.Get());
+		if (pNPC && !IsValidEnemy(pNPC))
+			return;
+
+		CASW_Alien *pAlien = dynamic_cast<CASW_Alien*>(m_hEnemy.Get());
+		if (!pAlien)
+			return;
+
+		if (pAlien->IsElectroStunned())
+			return;	//no tesla if invalid enemy or alien has already stunned
+
+		trace_t shockTR;
+		Vector vecShockSrc = WorldSpaceCenter();
+		Vector vecAIPos = pAlien->WorldSpaceCenter();
+		CASWTraceFilterShot traceFilter( this, NULL, COLLISION_GROUP_NONE );
+		AI_TraceLine( vecShockSrc, vecAIPos, MASK_SHOT, &traceFilter, &shockTR );
+		if ( shockTR.fraction != 1.0 && shockTR.m_pEnt )
+		{
+			// spawn a shock effect
+			Vector	vecFXSrc;
+			QAngle	vecFXAng;
+			GetAttachment( "effects", vecFXSrc, vecFXAng );
+			vecAIPos = shockTR.endpos;
+			ClearMultiDamage();	
+			CTakeDamageInfo shockDmgInfo( this, this, 1, DMG_SHOCK );					
+
+			Vector vecDir = vecAIPos - vecShockSrc;
+			VectorNormalize( vecDir );
+			shockDmgInfo.SetDamagePosition( shockTR.endpos );
+			shockDmgInfo.SetDamageForce( vecDir );
+			shockDmgInfo.ScaleDamageForce( 1.0 );	
+			shockDmgInfo.SetWeapon( m_hCreatorWeapon );
+			shockTR.m_pEnt->DispatchTraceAttack( shockDmgInfo, vecDir, &shockTR );
+			ApplyMultiDamage();
+
+			CRecipientFilter filter;
+			filter.AddAllPlayers();
+			UserMessageBegin( filter, "ASWEnemyZappedByTesla" );
+			WRITE_FLOAT( vecShockSrc.x );
+			WRITE_FLOAT( vecShockSrc.y );
+			WRITE_FLOAT( vecShockSrc.z );
+			WRITE_SHORT( pAlien->entindex() );
+			MessageEnd();
+		}
+	}
 }

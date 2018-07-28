@@ -55,6 +55,7 @@ void CASW_Sentry_Top_Cannon::Fire()
 		return;
 
 	BaseClass::Fire();
+	SentryTesla(); // sentry firing tesla
 
 	Vector diff = m_hEnemy->WorldSpaceCenter() - GetFiringPosition();
 	diff.NormalizeInPlace();

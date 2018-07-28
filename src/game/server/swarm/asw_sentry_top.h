@@ -94,6 +94,9 @@ public:
 		ASW_SENTRY_RANGE= 525, // just the default
 	};
 
+	virtual void SentryTesla();
+	EHANDLE m_hCreatorWeapon;
+
 protected:
 	// helper function used by FindEnemy
 	Vector GetEnemyVelocity( CBaseEntity *pEnemy = NULL );
