@@ -102,6 +102,7 @@ ConVar asw_queen_force_parasite_spawn("asw_queen_force_parasite_spawn", "0", FCV
 ConVar asw_queen_force_spit("asw_queen_force_spit", "0", FCVAR_CHEAT, "Set to 1 to force the queen to spit");
 
 extern ConVar rd_deagle_bigalien_dmg_scale;
+ConVar rd_queen_force_remove_body("rd_queen_force_remove_body", "1", FCVAR_NONE, "Instantly removes queen on death.");
 
 #define ASW_QUEEN_CLAW_MINS Vector(-asw_queen_slash_size.GetFloat(), -asw_queen_slash_size.GetFloat(), -asw_queen_slash_size.GetFloat() * 2.0f)
 #define ASW_QUEEN_CLAW_MAXS Vector(asw_queen_slash_size.GetFloat(), asw_queen_slash_size.GetFloat(), asw_queen_slash_size.GetFloat() * 2.0f)
@@ -161,7 +162,7 @@ void CASW_Queen::Spawn( void )
 
 	m_flDistTooFar = 9999999.0f;		
 	m_angQueenFacing = GetAbsAngles();
-	m_hDiver = CASW_Queen_Divers::Create_Queen_Divers(this);	
+	m_hDiver = CASW_Queen_Divers::Create_Queen_Divers(this);
 	//CollisionProp()->SetSurroundingBoundsType( USE_HITBOXES );
 
 	m_takedamage = DAMAGE_NO;	// queen is invulnerable until she finds her first enemy
@@ -189,6 +190,7 @@ void CASW_Queen::Precache( void )
 	PrecacheScriptSound( "ASW_Queen.Spit" );
 	PrecacheScriptSound( "ASW_Queen.TentacleAttackStart" );
 
+    PrecacheModel("models/swarm/Queen/Queen.mdl");
 	BaseClass::Precache();
 }
 
@@ -1410,6 +1412,12 @@ void CASW_Queen::Event_Killed( const CTakeDamageInfo &info )
 		if (m_hDiver.Get())
 			m_hDiver.Get()->SetBurrowing(false);
 	}
+
+	if (rd_queen_force_remove_body.GetBool())
+	{
+		SetThink(&CASW_Queen::SUB_Remove);
+		SetNextThink(gpGlobals->curtime + 4.0f);
+    }
 }
 
 Vector CASW_Queen::GetDiverSpot()
