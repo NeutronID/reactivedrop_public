@@ -2551,7 +2551,7 @@ void CAlienSwarm::RestartMission( CASW_Player *pPlayer, bool bForce, bool bSkipF
 		gameeventmanager->FireEvent( event );
 	}
 
-	if ( !bSkipFail && GetGameState() == ASW_GS_INGAME && gpGlobals->curtime - ASWGameRules()->m_fMissionStartedTime > 30.0f )
+	if ( !bSkipFail && GetGameState() == ASW_GS_INGAME && gpGlobals->curtime - ASWGameRules()->m_fMissionStartedTime > 30.0f && !asw_instant_restart.GetBool())
 	{
 		// They've been playing a bit... go to the mission fail screen instead!
 		ASWGameRules()->MissionComplete( false );
@@ -2572,7 +2572,7 @@ void CAlienSwarm::RestartMission( CASW_Player *pPlayer, bool bForce, bool bSkipF
 
 	SetForceReady(ASW_FR_NONE);
 
-	if (!asw_instant_restart.GetBool())
+	//if (!asw_instant_restart.GetBool())
 	{
 		if (ASWGameResource())
 			ASWGameResource()->RememberLeaderID();
@@ -3989,6 +3989,21 @@ void CAlienSwarm::MissionComplete( bool bSuccess )
 {
 	if ( m_iGameState >= ASW_GS_DEBRIEF )	// already completed the mission
 		return;
+
+	if (asw_instant_restart.GetBool() && !bSuccess) // asw_instant_restart fix
+	{
+		// Award experience for failed missions with asw_instant_restart enabled
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )	
+		{
+			CASW_Player* pOtherPlayer = dynamic_cast< CASW_Player* >( UTIL_PlayerByIndex( i ) );
+			if ( pOtherPlayer )
+			{
+				pOtherPlayer->AwardExperience();
+			}
+		}
+		SetForceReady( ASW_FR_INGAME_RESTART );
+		return;
+    }
 
 	StopStim();
 
@@ -7453,19 +7468,11 @@ void CAlienSwarm::FinishForceReady()
 				CampaignSaveAndShowCampaignMap(NULL, true);
 			}
 			break;
-		case ASW_FR_RESTART:	// force a mission restart
+		case ASW_FR_RESTART:	// force a mission restart fix
 		case ASW_FR_INGAME_RESTART:
 			{
 				SetForceReady(ASW_FR_NONE);
-
-				if ( gpGlobals->curtime - m_fMissionStartedTime > 30.0f && GetGameState() == ASW_GS_INGAME )
-				{
-					MissionComplete( false );		
-				}
-				else
-				{
-					RestartMission( NULL, true );
-				}
+			    RestartMission( NULL, true );
 			}
 			break;
 		case ASW_FR_CAMPAIGN_MAP:
