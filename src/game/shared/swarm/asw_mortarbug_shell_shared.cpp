@@ -52,7 +52,10 @@ extern int g_sModelIndexFireball;
 
 ConVar asw_mortarbug_shell_gravity("asw_mortarbug_shell_gravity", "0.8f", FCVAR_CHEAT, "Gravity of mortarbug shell");
 ConVar asw_mortarbug_shell_fuse("asw_mortarbug_shell_fuse", "3.0f", FCVAR_CHEAT, "Time before mortarbug shell explodes");
-ConVar sk_asw_mortarbug_shell_damage( "sk_asw_mortarbug_shell_damage", "50", FCVAR_CHEAT );
+ConVar rd_mortarbug_shell_damage( "rd_mortarbug_shell_damage", "50.0f", FCVAR_CHEAT );
+ConVar rd_mortarbug_shell_radius( "rd_mortarbug_shell_radius", "220.0f", FCVAR_CHEAT );
+ConVar rd_mortarbug_shell_flame( "rd_mortarbug_shell_flame", "3.0", FCVAR_CHEAT, "Set duration of burning fireball");
+ConVar rd_mortarbug_shell_mass( "rd_mortarbug_shell_mass", "10", FCVAR_CHEAT, "Mass of mortarbug fireball");
 
 CASW_Mortarbug_Shell::CASW_Mortarbug_Shell()
 {
@@ -87,26 +90,26 @@ void CASW_Mortarbug_Shell::Spawn( void )
 	SetSequence( LookupSequence( "MortarBugProjectile_Closed" ) );
 
 	// TODO: 
-	m_flDamage		= sk_asw_mortarbug_shell_damage.GetFloat();
-	m_DmgRadius		= 220.0f;
+	m_flDamage		= rd_mortarbug_shell_damage.GetFloat();
+	m_DmgRadius		= rd_mortarbug_shell_radius.GetFloat();
 
-	//Ignite(3.0, false, 0, false);
+    Ignite (rd_mortarbug_shell_flame.GetFloat(), false, 0, false); // activate fire, Set duration of burning fireball
 
-	m_takedamage	= DAMAGE_NO;
+	m_takedamage	= DAMAGE_YES;
 
 	m_bModelOpening = false;
 
 	EmitSound( "ASW_Boomer_Projectile.Spawned" );
 
-	SetSize( -Vector(4,4,4), Vector(4,4,4) );
+    SetSize( -Vector(1,1,1), Vector(1,1,1) );
 	SetSolid( SOLID_BBOX );
 	SetGravity( asw_mortarbug_shell_gravity.GetFloat() );
 
-	SetCollisionGroup( COLLISION_GROUP_DEBRIS );	// TODO: change this to a custom collision group?
+	SetCollisionGroup( ASW_COLLISION_GROUP_PLAYER_MISSILE );
 	SetTouch( &CASW_Mortarbug_Shell::VShellTouch );
 
 	// TODO: Have a sound for the shell?
-	//EmitSound( "ASWGrenade.Alarm" );  // 3 second warning sound
+	EmitSound( "ASWGrenade.Alarm" );  // 3 second warning sound
 
 	m_vecLastPosition = vec3_origin;
 	SetThink( &CASW_Mortarbug_Shell::ShellFlyThink );
@@ -243,7 +246,7 @@ CASW_Mortarbug_Shell* CASW_Mortarbug_Shell::CreateShell( const Vector &vecOrigin
 
 void CASW_Mortarbug_Shell::Detonate()
 {
-	m_takedamage	= DAMAGE_NO;	
+	m_takedamage	= DAMAGE_YES;
 
 	// explosion effects
 	DispatchParticleEffect( "boomer_drop_explosion", GetAbsOrigin(), Vector( m_DmgRadius, 0.0f, 0.0f ), QAngle( 0.0f, 0.0f, 0.0f ) );
@@ -253,7 +256,7 @@ void CASW_Mortarbug_Shell::Detonate()
 	VectorNormalize(vecForward);
 	trace_t		tr;
 	UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + 60*vecForward, MASK_SHOT, 
-		this, COLLISION_GROUP_NONE, &tr);
+    this, COLLISION_GROUP_NONE, &tr);
 
 	if ((tr.m_pEnt != GetWorldEntity()) || (tr.hitbox != 0))
 	{
@@ -281,9 +284,21 @@ void CASW_Mortarbug_Shell::Detonate()
 	UTIL_Remove( this );
 }
 
+int CASW_Mortarbug_Shell::OnTakeDamage(const CTakeDamageInfo &info)
+{
+    if ( info.GetAttacker() && info.GetAttacker()->IsNPC() )
+    {
+        if (! (info.GetDamageType() & DMG_BLAST) ) //disallow to be damaged with grenades
+        {
+            Vector vecForce = info.GetDamageForce() / rd_mortarbug_shell_mass.GetFloat();
+            vecForce.z = random->RandomFloat(250, 300);
+            ApplyAbsVelocityImpulse(vecForce);
+        }
+    }
+    return 0;
+}
+
 #endif		// GAME_DLL
-
-
 
 #ifdef CLIENT_DLL
 
