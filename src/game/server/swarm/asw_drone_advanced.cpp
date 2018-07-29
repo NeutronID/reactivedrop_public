@@ -192,25 +192,16 @@ void CASW_Drone_Advanced::Spawn( void )
 	m_FlinchActivity = ACT_INVALID;
 	m_nDeathStyle = RandomFloat() < asw_drone_gib_chance.GetFloat() ? kDIE_INSTAGIB : kDIE_RAGDOLLFADE;
 
-	// randomize the parts on the drone
 	if ( asw_new_drone.GetBool() )
 	{
-		//claws
-		SetBodygroup ( 1, RandomInt (0, 2 ) );
-		SetBodygroup ( 2, RandomInt (0, 2 ) );
-		SetBodygroup ( 3, RandomInt (0, 2 ) );
-		SetBodygroup ( 4, RandomInt (0, 2 ) );
-		// body
-		if ( RandomFloat() < .5 )
-		{
-		  SetBodygroup ( 0, RandomInt (0, 1 ) );
-		}
-		// bones
-		if ( RandomFloat() < .25)
-		{
-			SetBodygroup ( 5, RandomInt (0, 1 ) );
-		}
+		SetBodygroup ( 0, 0 );	//beefier body
+		SetBodygroup ( 1, 2 );	//longest claws
+		SetBodygroup ( 2, 2 );
+		SetBodygroup ( 3, 2 );
+		SetBodygroup ( 4, 2 );
+		SetBodygroup ( 5, 1 );	//bones from back
 	}
+
 	if (FClassnameIs(this, "asw_drone_jumper"))
 	{
 		m_bJumper = true;
