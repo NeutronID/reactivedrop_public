@@ -7,8 +7,11 @@
 
 LINK_ENTITY_TO_CLASS( asw_radiation_volume, CASW_Radiation_Volume );
 
-#define RAD_DAMAGE_INTERVAL 1.0f
+//#define RAD_DAMAGE_INTERVAL 1.0f
 #define ASW_RAD_DAMAGE 20
+ConVar	rd_rad_damage( "rd_rad_damage","0.5f", FCVAR_NONE, "Radiation gas leak damage to marine.");
+ConVar	rd_rad_damage_interval( "rd_rad_damage_interval","1.0f", FCVAR_NONE, "Radiation gas leak damage interval.");
+ConVar	rd_rad_damage_boxwidth( "rd_rad_damage_boxwidth","100.0f", FCVAR_NONE, "Radiation gas leak damage distance away from the nearest marine.");
 
 BEGIN_DATADESC( CASW_Radiation_Volume )
 	DEFINE_FUNCTION(RadTouch),
@@ -22,7 +25,7 @@ END_DATADESC()
 CASW_Radiation_Volume::CASW_Radiation_Volume()
 {
 	m_flDamage = ASW_RAD_DAMAGE;
-	m_flDmgInterval = RAD_DAMAGE_INTERVAL;
+	m_flDmgInterval = rd_rad_damage_interval.GetFloat();
 	m_flBoxWidth = 100.0f;
 }
 
@@ -33,9 +36,10 @@ void CASW_Radiation_Volume::Spawn( void )
 	// make us invisible, a cube, non solid, but still firing touch triggers
 	AddEffects(EF_NODRAW);
 	SetSolid( SOLID_BBOX );
-	float boxWidth = m_flBoxWidth;
+	//float boxWidth = m_flBoxWidth;
+    float boxWidth = rd_rad_damage_boxwidth.GetFloat();
 	UTIL_SetSize(this, Vector(-boxWidth,-boxWidth,0),Vector(boxWidth,boxWidth,boxWidth * 2));
-	SetCollisionGroup(ASW_COLLISION_GROUP_PASSABLE);	
+	SetCollisionGroup(ASW_COLLISION_GROUP_PASSABLE);
 	AddSolidFlags(FSOLID_TRIGGER);
 	SetTouch( &CASW_Radiation_Volume::RadTouch );
 
@@ -83,7 +87,8 @@ void CASW_Radiation_Volume::RadHurt(CBaseEntity *pEnt)
 
 	float fDamage = m_flDamage;
 	if (pEnt->Classify() == CLASS_ASW_MARINE)
-		fDamage *= 0.5f;
+		//fDamage *= 0.5f;
+		fDamage *= rd_rad_damage.GetFloat();
 	pEnt->TakeDamage( CTakeDamageInfo( this, pAttacker, fDamage, DMG_RADIATION ) );
 }
 
@@ -110,6 +115,7 @@ void CASW_Radiation_Volume::RadThink()
 
 	if (m_hRadTouching.Count() > 0)
 	{
-		SetNextThink( gpGlobals->curtime + m_flDmgInterval );
+		//SetNextThink( gpGlobals->curtime + m_flDmgInterval );
+        SetNextThink( gpGlobals->curtime + rd_rad_damage_interval.GetFloat() );
 	}
 }
