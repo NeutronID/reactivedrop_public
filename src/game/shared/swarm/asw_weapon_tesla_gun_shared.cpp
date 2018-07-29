@@ -39,7 +39,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static const float ASW_TG_RANGE = 240.0f; // Range of electrical discharge - TODO: make this an attribute?
+ConVar rd_tesla_gun_infinite("rd_tesla_gun_infinite", "0", FCVAR_CHEAT, "Infinite ammo for tesla gun.");
+static const float ASW_TG_RANGE = 280.0f; // Range of electrical discharge - TODO: make this an attribute?
 static const float ASW_TG_TRACE_SIZE = 10.0f; // Size of the laser's trace attack
 static const float ASW_TG_FIELD_DURATION = 2.0f; // Duration of electrical field left behind
 
@@ -48,7 +49,7 @@ static const float ASW_TG_SEARCH_DIAMETER = 48.0f; // How far past the range to 
 static const float SQRT3 = 1.732050807569; // for computing max extents inside a box
 static const Vector ASW_TG_SEARCH_BOX_EXTENTS( ASW_TG_SEARCH_DIAMETER/2.0f, ASW_TG_SEARCH_DIAMETER/2.0f, ASW_TG_SEARCH_DIAMETER/2.0f );
 
-static const int ASW_TG_MAX_SHOCK_ALIENS = 6; // Max # of aliens to search for a shock target
+static const int ASW_TG_MAX_SHOCK_ALIENS = 9; // Max # of aliens to search for a shock target
 
 
 extern int	g_sModelIndexSmoke;			// (in combatweapon.cpp) holds the index for the smoke cloud
@@ -114,7 +115,7 @@ void CASW_Weapon_Tesla_Gun::Precache( void )
 
 bool CASW_Weapon_Tesla_Gun::HasAmmo()
 {
-	return m_iClip1 > 0;
+	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -190,6 +191,7 @@ void CASW_Weapon_Tesla_Gun::PrimaryAttack( void )
 
 			if ( gpGlobals->curtime > m_flLastDischargeTime + (GetFireRate()*3) )
 			{
+			if (!rd_tesla_gun_infinite.GetBool())
 				m_iClip1 = MAX( 0, m_iClip1 - 1 );
 				m_flLastDischargeTime = gpGlobals->curtime;
 			}
@@ -315,7 +317,7 @@ void CASW_Weapon_Tesla_Gun::ShockEntity()
 #endif
 
 	// decrement ammo
-	m_iClip1 = MAX( 0, m_iClip1 - 1 );
+	//m_iClip1 = MAX( 0, m_iClip1 - 1 );
 
 	CPASFilter filter( hShockEntity->GetAbsOrigin() );
 	CBaseEntity::EmitSound( filter, SOUND_FROM_WORLD, "ASW_Tesla_Laser.Damage", &hShockEntity->GetAbsOrigin() );
