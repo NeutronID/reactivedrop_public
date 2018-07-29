@@ -117,7 +117,8 @@ void CASW_Egg::Spawn( void )
 	//SetSolid( SOLID_BBOX );
 	SetSolid( SOLID_VPHYSICS );
 	CreateVPhysics();
-	SetCollisionGroup( ASW_COLLISION_GROUP_EGG );
+	//SetCollisionGroup( ASW_COLLISION_GROUP_EGG );
+    SetCollisionGroup( ASW_COLLISION_GROUP_ALIEN ); //necessary for rm_prespawn_num_egg, so as not to get stuck in them
 
 	Precache();
 	SetModel(EGG_MODEL);
