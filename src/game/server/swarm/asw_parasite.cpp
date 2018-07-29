@@ -36,6 +36,7 @@ ConVar asw_parasite_inside("asw_parasite_inside", "0", FCVAR_NONE, "If set, para
 ConVar rd_parasite_defanged_health( "rd_parasite_defanged_health", "10", FCVAR_CHEAT, "Health of the defanged parasite" );
 ConVar rd_parasite_health( "rd_parasite_health", "25", FCVAR_CHEAT, "Health of the parasite" );
 extern ConVar asw_debug_alien_damage;
+extern ConVar asw_god;
 extern ConVar sv_gravity;
 
 int ACT_ASW_EGG_IDLE;
@@ -119,6 +120,7 @@ void CASW_Parasite::Spawn( void )
 		m_iHealth	= ASWGameRules()->ModifyAlienHealthBySkillLevel(rd_parasite_defanged_health.GetInt()) + m_iHealthBonus;
 		SetBodygroup( 0, 1 );
 		m_fSuicideTime = gpGlobals->curtime + 60;
+		m_ClassType = (Class_T)CLASS_ASW_PARASITE_DEFANGED;
 	}
 	else
 	{
@@ -126,6 +128,7 @@ void CASW_Parasite::Spawn( void )
 		m_iHealth	= ASWGameRules()->ModifyAlienHealthBySkillLevel(rd_parasite_health.GetInt()) + m_iHealthBonus;
 		SetBodygroup( 0, 0 );
 		m_fSuicideTime = 0;
+		m_ClassType = (Class_T)CLASS_ASW_PARASITE;
 	}
 
 	m_iMaxHealth = m_iHealth;
@@ -693,13 +696,14 @@ bool CASW_Parasite::CheckInfestTarget( CBaseEntity *pOther )
 
 void CASW_Parasite::StartInfestation()
 {
-	if ( !IsAlive() )
+	/*if ( !IsAlive() )
 	{
 		return;
-	}
+	}*/
 
 	CASW_Marine* pMarine = CASW_Marine::AsMarine( m_hPrepareToInfest.Get() );
-	if ( pMarine )
+	//if ( pMarine )
+	if ( pMarine && !asw_god.GetBool() && this->GetHealth() > 0)
 	{
 		InfestMarine( pMarine );
 	}
@@ -799,16 +803,16 @@ void CASW_Parasite::InfestMarine(CASW_Marine* pMarine)
 			}
 		}
 		
-		m_takedamage = DAMAGE_NO;
-		AddFlag( FL_NOTARGET );
+		//m_takedamage = DAMAGE_NO;
+		//AddFlag( FL_NOTARGET );
 		SetThink( &CASW_Parasite::InfestThink );
 		SetTouch( NULL );
-		m_bInfesting = true;		
+		m_bInfesting = true;
 	}
 	else
 	{
 		FinishedInfesting();
-	}		
+	}
 }
 
 void CASW_Parasite::InfestColonist(CASW_Colonist* pColonist)
@@ -998,7 +1002,7 @@ void CASW_Parasite::TouchDamage( CBaseEntity *pOther )
 	info.SetDamage(damage);
 	pOther->TakeDamage( info  );
 	EmitSound("ASWFire.AcidBurn");
-	CEffectData	data;			
+	CEffectData	data;
 	data.m_vOrigin = GetAbsOrigin();
 	data.m_nOtherEntIndex = pOther->entindex();
 	DispatchEffect( "ASWAcidBurn", data );

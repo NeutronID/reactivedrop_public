@@ -26,8 +26,8 @@ public:
 	float GetIdealSpeed() const;
 	float GetIdealAccel( ) const;
 	float MaxYawSpeed( void );
-	void HandleAnimEvent( animevent_t *pEvent );	
-	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_PARASITE; }
+	void HandleAnimEvent( animevent_t *pEvent );
+	Class_T		Classify( void ) { return  m_ClassType; }
 	virtual bool		ShouldGib( const CTakeDamageInfo &info );
 	bool CorpseGib( const CTakeDamageInfo &info );
 	void BuildScheduleTestBits( void );
@@ -109,6 +109,9 @@ public:
 
 protected:
 	DEFINE_CUSTOM_AI;
+
+private:
+	Class_T m_ClassType;
 };
 
 #endif // _INCLUDED_ASW_PARASITE_H

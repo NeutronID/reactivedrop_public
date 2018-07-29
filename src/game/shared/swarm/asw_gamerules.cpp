@@ -4795,6 +4795,18 @@ void CAlienSwarm::AlienKilled(CBaseEntity *pAlien, const CTakeDamageInfo &info)
 		pMarine = dynamic_cast< CASW_Marine* >( pFire->GetOwner() );
 	}
 
+	if ( pAlien->Classify() == CLASS_ASW_PARASITE )
+	{
+		CASW_Parasite *pPara = dynamic_cast<CASW_Parasite*>(pAlien);
+		CASW_Marine *pInfested = dynamic_cast<CASW_Marine*>(pPara->GetParent());
+
+		if ( pInfested ) 
+		{
+			pInfested->CureInfestation( pMarine, 0.0f );
+
+		}
+    }
+
 	// send a game event for achievements to use
 	IGameEvent *pEvent = gameeventmanager->CreateEvent( "alien_died", false );
 	if ( !pEvent )

@@ -603,8 +603,8 @@ public:
 	void MeleeBleed(CTakeDamageInfo* info);
 	void BecomeInfested(CASW_Alien* pAlien);
 	void CureInfestation(CASW_Marine *pHealer, float fCureFraction);
-	void ScriptBecomeInfested();
-	void ScriptCureInfestation();
+	/*void ScriptBecomeInfested();
+	void ScriptCureInfestation();*/
 	bool m_bPlayedCureScream;	// have we played a scream sound for our parasite?
 	bool IsInfested();
 	CNetworkVar(float, m_fInfestedTime);	// how much time left on the infestation

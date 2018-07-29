@@ -375,8 +375,8 @@ BEGIN_ENT_SCRIPTDESC( CASW_Marine, CBaseCombatCharacter, "Marine" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetCommander, "GetCommander", "get the player that owns the marine" )
 	DEFINE_SCRIPTFUNC( Extinguish, "Extinguish a burning marine." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptIgnite, "Ignite", "Ignites the marine into flames." )
-	DEFINE_SCRIPTFUNC_NAMED( ScriptBecomeInfested, "BecomeInfested", "Infests the marine." )
-	DEFINE_SCRIPTFUNC_NAMED( ScriptCureInfestation, "CureInfestation", "Cures an infestation." )
+	//DEFINE_SCRIPTFUNC_NAMED( ScriptBecomeInfested, "BecomeInfested", "Infests the marine." )
+	//DEFINE_SCRIPTFUNC_NAMED( ScriptCureInfestation, "CureInfestation", "Cures an infestation." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGiveAmmo, "GiveAmmo", "Gives the marine ammo for the specified ammo index." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGiveWeapon, "GiveWeapon", "Gives the marine a weapon." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptDropWeapon, "DropWeapon", "Makes the marine drop a weapon." )
@@ -3548,7 +3548,7 @@ void CASW_Marine::CureInfestation(CASW_Marine *pHealer, float fCureFraction)
 	}
 }
 
-void CASW_Marine::ScriptBecomeInfested()
+/*void CASW_Marine::ScriptBecomeInfested()
 {
 	BecomeInfested( NULL );
 }
@@ -3556,7 +3556,7 @@ void CASW_Marine::ScriptBecomeInfested()
 void CASW_Marine::ScriptCureInfestation()
 {
 	CureInfestation( NULL, 0 );
-}
+}*/
 
 // if we died from infestation, then gib
 bool CASW_Marine::ShouldGib( const CTakeDamageInfo &info )
