@@ -23,6 +23,7 @@
 #include "rd_director_triggers.h"
 #include "asw_spawner.h"
 #include "asw_alien_goo_shared.h"
+#include "asw_egg.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -1289,6 +1290,7 @@ ConVar rm_prespawn_num_shamans("rm_prespawn_num_shamans", "5", FCVAR_CHEAT, "Num
 ConVar rm_prespawn_num_buzzers("rm_prespawn_num_buzzers", "1", FCVAR_CHEAT, "Num aliens to randomly spawn if rd_prespawn_scale 1");
 ConVar rm_prespawn_num_rangers("rm_prespawn_num_rangers", "5", FCVAR_CHEAT, "Num aliens to randomly spawn if rd_prespawn_scale 1");
 ConVar rm_prespawn_num_biomass( "rm_prespawn_num_biomass", "3", FCVAR_CHEAT, "Num biomass to randomly spawn if rd_prespawn_scale 1" );
+ConVar rm_prespawn_num_egg( "rm_prespawn_num_egg", "3", FCVAR_CHEAT, "Num egg to randomly spawn if rd_prespawn_scale 1" );
 
 void CASW_Spawn_Manager::PrespawnAliens(int multiplier)
 {
@@ -1312,6 +1314,7 @@ void CASW_Spawn_Manager::PrespawnAliens(int multiplier)
 	//const int NUM_FLIES			= rm_prespawn_num_buzzers.GetInt();
 	const int NUM_RANGERS		= rm_prespawn_num_rangers.GetInt();
 	const int NUM_BIOMASS		= rm_prespawn_num_biomass.GetInt();
+    const int NUM_EGG		    = rm_prespawn_num_egg.GetInt();
 
 
 	int iNumNodes = g_pBigAINet->NumNodes();
@@ -1335,6 +1338,7 @@ void CASW_Spawn_Manager::PrespawnAliens(int multiplier)
 	PrespawnAlienAtRandomNode("asw_ranger",		NUM_RANGERS * multiplier, HULL_MEDIUMBIG, playerStartPos, iNumNodes);
 
 	PrespawnEntityAtRandomNode( "asw_alien_goo", NUM_BIOMASS * multiplier, playerStartPos, iNumNodes );
+    PrespawnEntityAtRandomNode( "asw_egg", NUM_EGG * multiplier, playerStartPos, iNumNodes );
 }
 
 
@@ -1444,6 +1448,55 @@ void CASW_Spawn_Manager::PrespawnEntityAtRandomNode( const char *szEntityClass, 
 				break;			// exit from 30 tries
 		}
 	}
+
+	for ( int i = 0; i < iNumEntitiesToSpawn; ++i )
+    {
+		CAI_Node *pNode = NULL;
+		for ( int k = 0; k < 30; ++k )
+		{
+			int node_id = RandomInt( 3, iNumNodes +5 );
+			pNode = g_pBigAINet->GetNode( node_id );
+			if ( !pNode || pNode->GetType() != NODE_GROUND )
+				continue;
+			else if ( pNode->GetOrigin().DistToSqr( playerStartPos ) < 1000 * 1000 )
+			{
+				continue;
+			}
+			MDLCACHE_CRITICAL_SECTION();
+			bool allowPrecache = CBaseEntity::IsPrecacheAllowed();
+			CBaseEntity::SetAllowPrecache( true );
+			CBaseEntity *entity = dynamic_cast< CBaseEntity * >( CreateEntityByName( szEntityClass ) );
+			if ( entity )
+			{
+				Vector vecPositionOffset(0, 0, 0);
+				QAngle ang(0, 0, 0);
+				if ( entity->ClassMatches( "asw_egg" ) )
+				{
+					CASW_Egg *pEgg = static_cast< CASW_Egg* >( entity );
+					const int nEggModelId = RandomInt( 1, 2 );
+					switch ( nEggModelId )
+					{
+					  case 1:
+					  pEgg->SetModelName(AllocPooledString("models/aliens/egg/egg.mdl") );
+					  vecPositionOffset.Init(0, 0, 0.f);
+					  break;
+					  case 2:
+				      pEgg->SetModelName(AllocPooledString("models/aliens/egg/egg.mdl"));
+					  vecPositionOffset.Init(0, 0, 0.f);
+					  break;
+					}
+				}
+				entity->Precache();
+				Vector pos = pNode->GetOrigin() + vecPositionOffset;
+				entity->Teleport( &pos, &ang, NULL );
+				DispatchSpawn( entity );
+			}
+			CBaseEntity::SetAllowPrecache( allowPrecache );
+
+			if ( entity )
+				break;
+		}
+    }
 }
 
 // heuristic to find reasonably open space - searches for areas with high node connectivity
