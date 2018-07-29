@@ -30,6 +30,7 @@ ConVar rd_heavy_rifle_bigalien_dmg_scale( "rd_heavy_rifle_bigalien_dmg_scale", "
 ConVar rd_heavy_rifle_fastfire_dmg_scale( "rd_heavy_rifle_fastfire_dmg_scale", "2.0", FCVAR_CHEAT | FCVAR_REPLICATED, "Used to scale up heavy rifle's damage during fast fire mode" );
 ConVar rd_heavy_rifle_fastfire_duration(  "rd_heavy_rifle_fastfire_duration",  "3.0", FCVAR_CHEAT | FCVAR_REPLICATED, "Number of seconds fast fire lasts" );
 ConVar rd_heavy_rifle_fastfire_fire_rate_multiplier( "rd_heavy_rifle_fastfire_fire_rate_multiplier", "0.7", FCVAR_CHEAT | FCVAR_REPLICATED, "A multiplier which is applied to rifle's fire rate during fast fire mode" );
+ConVar rd_heavy_rifle_overheat(  "rd_heavy_rifle_overheat",  "1.0f", FCVAR_CHEAT | FCVAR_REPLICATED, "Number of seconds overheating stop fire lasts" );
 
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Weapon_Heavy_Rifle, DT_ASW_Weapon_Heavy_Rifle )
 
@@ -165,7 +166,7 @@ void CASW_Weapon_Heavy_Rifle::StopFastFire()
 
 	if ( !m_bInReload )
 	{
-		m_flNextPrimaryAttack = gpGlobals->curtime + 1.0f;
+		m_flNextPrimaryAttack = gpGlobals->curtime + rd_heavy_rifle_overheat.GetFloat();
 		m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
 	}
 
