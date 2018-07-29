@@ -270,7 +270,11 @@ END_DATADESC()
 #endif /* not client */
 
 ConVar asw_healgrenade_refire_time( "asw_healgrenade_refire_time", "1.0f", FCVAR_REPLICATED | FCVAR_CHEAT, "Time between starting a new healgrenade throw" );
-
+// lots more options for the medical satchel
+ConVar rd_healgrenade_radius("rd_healgrenade_radius", "100.0", FCVAR_CHEAT, "Radius of the medical satchel.");
+ConVar rd_healgrenade_duration("rd_healgrenade_duration", "20.0", FCVAR_CHEAT, "Duration of the medical satchel healing.");
+ConVar rd_healgrenade_healing("rd_healgrenade_healing", "0.0", FCVAR_CHEAT, "Healing amount of the medical satchel.");
+ConVar rd_healgrenade_hps("rd_healgrenade_hps", "3.0", FCVAR_CHEAT, "Health per second of the medical satchel.");
 
 void CASW_Weapon_HealGrenade::Precache()
 {
@@ -294,10 +298,11 @@ CASW_AOEGrenade_Projectile* CASW_Weapon_HealGrenade::CreateProjectile( const Vec
 		return NULL;
 
 	float flHealAmount = MarineSkills()->GetSkillBasedValueByMarine( pMarine, ASW_MARINE_SKILL_HEALING, ASW_MARINE_SUBSKILL_HEAL_GRENADE_HEAL_AMOUNT );
-	float flDuration = 20.0f;
-	float flRadius = 100.0f;
+    flHealAmount += rd_healgrenade_healing.GetFloat();
+	float flDuration = rd_healgrenade_duration.GetFloat();
+	float flRadius = rd_healgrenade_radius.GetFloat();
 
-	float flHealthPerSecond = 3.0f;
+	float flHealthPerSecond = rd_healgrenade_hps.GetFloat();
 	float flInfestationCureAmount = MarineSkills()->GetSkillBasedValueByMarine( pMarine, ASW_MARINE_SKILL_XENOWOUNDS ) / 100.0f;
 
 	return CASW_HealGrenade_Projectile::Grenade_Projectile_Create( vecSrc, angles, vecVel, rotSpeed, pOwner,
