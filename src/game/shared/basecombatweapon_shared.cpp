@@ -37,6 +37,27 @@
 
 extern bool UTIL_ItemCanBeTouchedByPlayer( CBaseEntity *pItem, CBasePlayer *pPlayer );
 
+extern ConVar rd_bonus_charges_autogun;
+extern ConVar rd_bonus_charges_flamer;
+extern ConVar rd_bonus_charges_grenade_launcher;
+extern ConVar rd_bonus_charges_minigun;
+extern ConVar rd_bonus_charges_pistol;
+extern ConVar rd_bonus_charges_pdw;
+extern ConVar rd_bonus_charges_prifle;
+extern ConVar rd_bonus_charges_rifle;
+extern ConVar rd_bonus_charges_railgun;
+extern ConVar rd_bonus_charges_shotgun;
+extern ConVar rd_bonus_charges_sniper_rifle;
+extern ConVar rd_bonus_charges_vindicator;
+extern ConVar rd_bonus_charges_rifle_grenade;
+extern ConVar rd_bonus_charges_stun_grenade;
+extern ConVar rd_bonus_charges_vindicator_grenade;
+extern ConVar rd_bonus_charges_gas_grenades;
+extern ConVar rd_bonus_charges_heavy_rifle;
+extern ConVar rd_bonus_charges_heavy_rifles;
+extern ConVar rd_bonus_charges_medrifle;
+extern ConVar rd_bonus_charges_medrifles;
+
 BEGIN_ENT_SCRIPTDESC( CBaseCombatWeapon, CBaseAnimating, "Weapon" )
 	DEFINE_SCRIPTFUNC( GetMaxClip1, "" )
 	DEFINE_SCRIPTFUNC( GetMaxClip2, "" )
@@ -336,14 +357,56 @@ const char *CBaseCombatWeapon::GetPrintName( void ) const
 //-----------------------------------------------------------------------------
 int CBaseCombatWeapon::GetMaxClip1( void ) const
 {
-	return GetWpnData().iMaxClip1;
+	if ( !stricmp(GetPrintName(), "#asw_weapon_autogun") )
+		 return rd_bonus_charges_autogun.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_flamer") )
+	     return rd_bonus_charges_flamer.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_minigun") )
+		 return rd_bonus_charges_minigun.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_grenade_launcher") )
+	     return rd_bonus_charges_grenade_launcher.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_pistol") )
+	     return rd_bonus_charges_pistol.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_pdw") )
+	     return rd_bonus_charges_pdw.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_prifle") )
+	     return rd_bonus_charges_prifle.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_railgun") )
+	     return rd_bonus_charges_railgun.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_rifle") )
+	     return rd_bonus_charges_rifle.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_shotgun") )
+         return rd_bonus_charges_shotgun.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_sniper_rifle") )
+	     return rd_bonus_charges_sniper_rifle.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_vindicator") )
+	     return rd_bonus_charges_vindicator.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_heavy_rifle") )
+	     return rd_bonus_charges_heavy_rifle.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_medrifle") )
+	     return rd_bonus_charges_medrifle.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_gas_grenades") )
+	     return rd_bonus_charges_gas_grenades.GetInt();
+	else
+    return GetWpnData().iMaxClip1;
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 int CBaseCombatWeapon::GetMaxClip2( void ) const
-{
+{  
+	if ( !stricmp(GetPrintName(), "#asw_weapon_rifle") )
+	     return rd_bonus_charges_rifle_grenade.GetInt();
+	else if ( !stricmp(GetPrintName(), "#asw_weapon_prifle") )
+	     return rd_bonus_charges_stun_grenade.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_vindicator") )
+	     return rd_bonus_charges_vindicator_grenade.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_heavy_rifle") )
+	     return rd_bonus_charges_heavy_rifles.GetInt();
+    else if ( !stricmp(GetPrintName(), "#asw_weapon_medrifle") )
+	     return rd_bonus_charges_medrifles.GetInt();
+	else
 	return GetWpnData().iMaxClip2;
 }
 

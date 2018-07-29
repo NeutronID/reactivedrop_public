@@ -156,7 +156,7 @@ extern ConVar old_radius_damage;
 	ConVar asw_default_campaign("asw_default_campaign", "jacob", FCVAR_ARCHIVE, "Default campaign used when dedicated server restarts");
 	ConVar rd_max_marines("rd_max_marines", "-1", FCVAR_NONE, "Sets how many marines can be selected"); 
 	ConVar asw_last_game_variation("asw_last_game_variation", "0", FCVAR_ARCHIVE, "Which game variation was used last game");
-	ConVar asw_bonus_charges("asw_bonus_charges", "0", FCVAR_CHEAT, "Bonus ammo given to starting equipment");
+	ConVar rd_bonus_charges("rd_bonus_charges", "0", FCVAR_CHEAT, "Bonus ammo given to starting equipment");
 	ConVar asw_campaign_wounding("asw_campaign_wounding", "0", FCVAR_NONE, "Whether marines are wounded in the roster if a mission is completed with the marine having taken significant damage");
 	ConVar asw_drop_powerups("asw_drop_powerups", "0", FCVAR_CHEAT, "Do aliens drop powerups?");
 	ConVar asw_adjust_difficulty_by_number_of_marines( "asw_adjust_difficulty_by_number_of_marines", "1", FCVAR_CHEAT, "If enabled, difficulty will be reduced when there are only 3 or 2 marines." );
@@ -3694,6 +3694,44 @@ bool CAlienSwarm::CanHaveAmmo( CBaseCombatCharacter *pPlayer, int iAmmoIndex )
 	return false;
 }
 
+ConVar asw_ammo_satchel_bonus( "asw_ammo_satchel_bonus", "0", FCVAR_CHEAT, "Additional Ammo Satchels" );
+ConVar rd_bonus_charges_tesla_trap("rd_bonus_charges_tesla_trap", "3", FCVAR_CHEAT, "Number of tesla traps a marine starts out with.");
+ConVar rd_bonus_charges_flares("rd_bonus_charges_flares", "10", FCVAR_CHEAT, "Number of flares a marine starts out with.");
+ConVar rd_bonus_charges_grenades("rd_bonus_charges_grenades", "5", FCVAR_CHEAT, "Number of grenades a marine starts out with.");
+ConVar rd_bonus_charges_mines_fire("rd_bonus_charges_mines_fire", "5", FCVAR_CHEAT, "Number of incindiary mines an officer starts out with.");
+ConVar rd_bonus_charges_elec_armor("rd_bonus_charges_elec_armor", "3", FCVAR_CHEAT, "Number of electrified armor usages a marine starts out with.");
+ConVar rd_bonus_charges_damage_amp("rd_bonus_charges_damage_amp", "5", FCVAR_CHEAT, "Number of damage amplifiers a marine starts out with.");
+ConVar rd_bonus_charges_hornets("rd_bonus_charges_hornets", "3", FCVAR_CHEAT, "Number of hornet barrage usages a marine starts out with");
+ConVar rd_bonus_charges_grenades_freeze("rd_bonus_charges_grenades_freeze", "5", FCVAR_CHEAT, "Number of freeze grenades a marine starts out with.");
+ConVar rd_bonus_charges_smart_bomb("rd_bonus_charges_smart_bomb", "1", FCVAR_CHEAT, "Number of smart bomb usages a marine starts out with.");
+ConVar rd_bonus_charges_laser_mines("rd_bonus_charges_mines_laser", "12", FCVAR_CHEAT, "Number of laser mines a marine starts out with.");
+ConVar rd_bonus_charges_stim("rd_bonus_charges_stim", "3", FCVAR_CHEAT, "Number of adrenaline usages a marine starts out with.");
+ConVar rd_bonus_charges_medkit("rd_bonus_charges_medkit", "1", FCVAR_CHEAT, "Number of medkit usages a marine starts out with.");
+ConVar rd_bonus_charges_t75("rd_bonus_charges_t75", "5", FCVAR_CHEAT, "Number of t75 usages a marine starts out with.");
+ConVar rd_bonus_charges_bait("rd_bonus_charges_bait", "10", FCVAR_CHEAT, "Number of bait usages a marine starts out with.");
+ConVar rd_bonus_charges_gas_grenades("rd_bonus_charges_gas_grenades", "5", FCVAR_CHEAT, "Number of gas grenades usages a marine starts out with.");
+
+ConVar rd_bonus_charges_autogun("rd_bonus_charges_autogun", "250", FCVAR_CHEAT, "Sets ammo in clip of autogun.");
+ConVar rd_bonus_charges_flamer("rd_bonus_charges_flamer", "40", FCVAR_CHEAT, " Sets ammo in clip of flamer.");
+ConVar rd_bonus_charges_minigun("rd_bonus_charges_minigun", "250", FCVAR_CHEAT, "Sets ammo in clip of minigun.");
+ConVar rd_bonus_charges_grenade_launcher("rd_bonus_charges_grenade_launcher", "6", FCVAR_CHEAT, "Sets ammo in clip of grenades in launcher.");
+ConVar rd_bonus_charges_pistol("rd_bonus_charges_pistol", "24", FCVAR_CHEAT, "Sets ammo in clip of pistol.");
+ConVar rd_bonus_charges_pdw("rd_bonus_charges_pdw", "80", FCVAR_CHEAT, "Sets ammo in clip of pdw.");
+ConVar rd_bonus_charges_prifle("rd_bonus_charges_prifle", "98", FCVAR_CHEAT, "Sets ammo in clip of prifle.");
+ConVar rd_bonus_charges_stun_grenade("rd_bonus_charges_stun_grenade", "5", FCVAR_CHEAT, "Number of P-rifle grenades marine starts out with.",true,0,true,999);
+ConVar rd_bonus_charges_rifle("rd_bonus_charges_rifle", "98", FCVAR_CHEAT, "Sets ammo in clip of rifle.");
+ConVar rd_bonus_charges_rifle_grenade("rd_bonus_charges_rifle_grenade", "5", FCVAR_CHEAT, "Number of rifle grenades marine starts out with.",true,0,true,999);
+ConVar rd_bonus_charges_railgun("rd_bonus_charges_railgun", "1", FCVAR_CHEAT, "Sets ammo in clip of railgun.");
+ConVar rd_bonus_charges_shotgun("rd_bonus_charges_shotgun", "4", FCVAR_CHEAT, "Sets ammo in clip of shotgun.");
+ConVar rd_bonus_charges_sniper_rifle("rd_bonus_charges_sniper_rifle", "12", FCVAR_CHEAT, "Sets ammo in clip of sniper rifle.");
+ConVar rd_bonus_charges_vindicator("rd_bonus_charges_vindicator", "14", FCVAR_CHEAT, "Sets ammo in clip of vindicator.");
+ConVar rd_bonus_charges_vindicator_grenade("rd_bonus_charges_vindicator_grenade","5",FCVAR_CHEAT,"Number of vindicator grenades marine starts out with.",true,0,true,999);
+ConVar rd_bonus_charges_healgun("rd_bonus_charges_healgun", "100", FCVAR_CHEAT, "Number of healgun usages a marine starts out with.");
+ConVar rd_bonus_charges_heavy_rifle("rd_bonus_charges_heavy_rifle", "98", FCVAR_CHEAT, "Sets ammo in clip of heavy rifle.");
+ConVar rd_bonus_charges_heavy_rifles("rd_bonus_charges_heavy_rifles", "5", FCVAR_CHEAT, "Sets secondary ammo in clip of heavy rifle.",true,0,true,999);
+ConVar rd_bonus_charges_medrifle("rd_bonus_charges_medrifle", "72", FCVAR_CHEAT, " Sets ammo in clip of medrifle.");
+ConVar rd_bonus_charges_medrifles("rd_bonus_charges_medrifles", "50", FCVAR_CHEAT, " Sets secondary ammo in clip of medrifle.",true,0,true,999);
+
 void CAlienSwarm::GiveStartingWeaponToMarine(CASW_Marine* pMarine, int iEquipIndex, int iSlot)
 {
 	if ( !pMarine || iEquipIndex == -1 || iSlot < 0 || iSlot >= ASW_MAX_EQUIP_SLOTS )
@@ -3714,7 +3752,6 @@ void CAlienSwarm::GiveStartingWeaponToMarine(CASW_Marine* pMarine, int iEquipInd
 	}
 
 	// set the amount of bullets in the gun
-	//Msg("Giving starting waepon to marine: %s ",szWeaponClass);
 	int iPrimaryAmmo = pWeapon->GetDefaultClip1();	
 	int iSecondaryAmmo = IsTutorialMap() ? 0 : pWeapon->GetDefaultClip2();  // no grenades in the tutorial
 	// adjust here for medical satchel charges if the marine has the skill for it
@@ -3734,23 +3771,9 @@ void CAlienSwarm::GiveStartingWeaponToMarine(CASW_Marine* pMarine, int iEquipInd
 			iPrimaryAmmo = MarineSkills()->GetSkillBasedValueByMarine(pMarine, ASW_MARINE_SKILL_HEALING, ASW_MARINE_SUBSKILL_HEAL_GUN_CHARGES);
 		}
 	}
-	if ( !stricmp(szWeaponClass, "asw_weapon_flares") ||
-		 !stricmp(szWeaponClass, "asw_weapon_gas_grenades") || 
-		 !stricmp(szWeaponClass, "asw_weapon_grenades") || 
-		 !stricmp(szWeaponClass, "asw_weapon_mines") ||
-		 !stricmp(szWeaponClass, "asw_weapon_electrified_armor") ||
-		 !stricmp(szWeaponClass, "asw_weapon_buff_grenade") ||
-		 !stricmp(szWeaponClass, "asw_weapon_hornet_barrage") ||
-		 !stricmp(szWeaponClass, "asw_weapon_heal_grenade") ||
-		 !stricmp(szWeaponClass, "asw_weapon_t75") ||
-		 !stricmp(szWeaponClass, "asw_weapon_freeze_grenades") ||
-		 !stricmp(szWeaponClass, "asw_weapon_bait") ||
-		 !stricmp(szWeaponClass, "asw_weapon_smart_bomb") ||
-		 !stricmp(szWeaponClass, "asw_weapon_jump_jet") ||
-		 !stricmp(szWeaponClass, "asw_weapon_tesla_trap")
-		)
+
 	{
-		iPrimaryAmmo += asw_bonus_charges.GetInt();
+		iPrimaryAmmo += rd_bonus_charges.GetInt();
 	}
 
 	if ( !stricmp(szWeaponClass, "asw_weapon_ammo_satchel" ) ) 
@@ -3759,10 +3782,82 @@ void CAlienSwarm::GiveStartingWeaponToMarine(CASW_Marine* pMarine, int iEquipInd
 	}
 
 	pWeapon->SetClip1( iPrimaryAmmo );
+
 	// set secondary bullets in the gun
-	//Msg("Setting secondary bullets for %s to %d\n", szWeaponClass, iSecondaryAmmo);
 	pWeapon->SetClip2( iSecondaryAmmo );
 	
+    if ( !stricmp(szWeaponClass, "asw_weapon_prifle") )
+		pWeapon->SetClip1(rd_bonus_charges_prifle.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_prifle") )
+		pWeapon->SetClip2(rd_bonus_charges_stun_grenade.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_rifle") )
+		pWeapon->SetClip1(rd_bonus_charges_rifle.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_rifle"))
+		pWeapon->SetClip2(rd_bonus_charges_rifle_grenade.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_heavy_rifle") )
+		pWeapon->SetClip1(rd_bonus_charges_heavy_rifle.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_heavy_rifle"))
+		pWeapon->SetClip2(rd_bonus_charges_heavy_rifles.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_medrifle") )
+		pWeapon->SetClip1(rd_bonus_charges_medrifle.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_medrifle"))
+		pWeapon->SetClip2(rd_bonus_charges_medrifles.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_vindicator") )
+		pWeapon->SetClip1(rd_bonus_charges_vindicator.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_vindicator"))
+		pWeapon->SetClip2(rd_bonus_charges_vindicator_grenade.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_shotgun") )
+		pWeapon->SetClip1(rd_bonus_charges_shotgun.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_autogun") )
+		pWeapon->SetClip1(rd_bonus_charges_autogun.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_minigun") )
+		pWeapon->SetClip1(rd_bonus_charges_minigun.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_flamer") )
+		pWeapon->SetClip1(rd_bonus_charges_flamer.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_grenade_launcher") )
+		pWeapon->SetClip1(rd_bonus_charges_grenade_launcher.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_pdw") )
+		pWeapon->SetClip1(rd_bonus_charges_pdw.GetInt());
+    if ( !stricmp(szWeaponClass, "asw_weapon_pistol") )
+		pWeapon->SetClip1(rd_bonus_charges_pistol.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_sniper_rifle") )
+		pWeapon->SetClip1(rd_bonus_charges_sniper_rifle.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_railgun") )
+		pWeapon->SetClip1(rd_bonus_charges_railgun.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_heal_gun") )
+		pWeapon->SetClip1(rd_bonus_charges_healgun.GetInt());
+
+    if ( !stricmp(szWeaponClass, "asw_weapon_tesla_trap") )
+		pWeapon->SetClip1(rd_bonus_charges_tesla_trap.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_flares") )
+		pWeapon->SetClip1(rd_bonus_charges_flares.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_mines"))
+		pWeapon->SetClip1(rd_bonus_charges_mines_fire.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_laser_mines"))
+		pWeapon->SetClip1(rd_bonus_charges_laser_mines.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_electrified_armor"))
+		pWeapon->SetClip1(rd_bonus_charges_elec_armor.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_buff_grenade"))
+		pWeapon->SetClip1(rd_bonus_charges_damage_amp.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_hornet_barrage"))
+		pWeapon->SetClip1(rd_bonus_charges_hornets.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_freeze_grenades"))
+		pWeapon->SetClip1(rd_bonus_charges_grenades_freeze.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_smart_bomb"))
+		pWeapon->SetClip1(rd_bonus_charges_smart_bomb.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_grenades"))
+		pWeapon->SetClip1(rd_bonus_charges_grenades.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_stim"))
+		pWeapon->SetClip1(rd_bonus_charges_stim.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_medkit"))
+		pWeapon->SetClip1(rd_bonus_charges_medkit.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_t75"))
+		pWeapon->SetClip1(rd_bonus_charges_t75.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_bait"))
+		pWeapon->SetClip1(rd_bonus_charges_bait.GetInt());
+	if ( !stricmp(szWeaponClass, "asw_weapon_gas_grenades"))
+		pWeapon->SetClip1(rd_bonus_charges_gas_grenades.GetInt());
+
 	// equip the weapon
 	pMarine->Weapon_Equip_In_Index( pWeapon, iSlot );
 
@@ -3806,7 +3901,7 @@ void CAlienSwarm::AddBonusChargesToPickups()
 			CASW_Pickup_Weapon *pPickup = dynamic_cast<CASW_Pickup_Weapon*>(ent);
 			if ( pPickup )
 			{
-				pPickup->m_iBulletsInGun += asw_bonus_charges.GetInt();
+				pPickup->m_iBulletsInGun += rd_bonus_charges.GetInt();
 			}
 		}
 	}
