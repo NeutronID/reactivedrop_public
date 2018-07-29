@@ -4872,7 +4872,7 @@ CBaseEntity *CBasePlayer::EntSelectSpawnPoint()
 ReturnSpot:
 	if ( !pSpot  )
 	{
-		Warning( "PutClientInServer: no info_player_start on level\n");
+		DevWarning( "PutClientInServer: no info_player_start on level\n");
 		return CBaseEntity::Instance( INDEXENT( 0 ) );
 	}
 

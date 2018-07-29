@@ -141,7 +141,7 @@ void CASW_Mission_Chooser_Source_Local::OnSaveUpdated(const char *szSaveName)
 			break;
 		}
 	}
-	DvMsg("Updating save game summary %s\n", szSaveName);
+	DevMsg("Updating save game summary %s\n", szSaveName);
 	AddToSavedCampaignList(szWithExtension);
 }
 
