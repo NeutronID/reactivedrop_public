@@ -26,12 +26,16 @@ public:
 	virtual ~CASW_Weapon_Sniper_Rifle();
 	void Precache();
 
-	//virtual float	GetFireRate( void ) { return 1.2f; }
+    virtual float	GetFireRate( void );
 	
 	void ItemPostFrame();
 	Activity	GetPrimaryAttackActivity( void ) { return ACT_VM_PRIMARYATTACK; }
 	virtual bool ShouldMarineMoveSlow();
 	virtual bool IsZoomed() { return m_bZoomed.Get(); }
+
+	//Piercing;
+	int GetPierceNum( void );
+	float GetPierceChance( void );
 
 	void	PrimaryAttack();
 	virtual float GetWeaponDamage();

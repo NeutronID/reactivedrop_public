@@ -18,6 +18,10 @@ public:
 	virtual ~CASW_Weapon_DEagle();
 	virtual void Precache();
 
+	//deagle Piercing
+	int GetPierceNum( void );
+	float GetPierceChance( void );
+
 	virtual void PrimaryAttack();
 	virtual void ItemPostFrame();
 	virtual void ItemBusyFrame();

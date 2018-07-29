@@ -22,6 +22,11 @@ public:
 	virtual ~CASW_Weapon_50CalMG();
 	virtual void Precache();
 
+	//50CalMG Piercing
+	int GetPierceNum( void );
+	float GetPierceChance( void );
+    float GetFireRate(void);
+
 	virtual void SecondaryAttack();
 
 	virtual const Vector& GetAngularBulletSpread()

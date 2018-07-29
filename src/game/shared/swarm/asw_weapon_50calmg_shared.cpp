@@ -38,6 +38,11 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar rd_50calmg_damage( "rd_50calmg_damage", "160.0", FCVAR_CHEAT );
+ConVar rd_50calmg_fire_rate("rd_50calmg_fire_rate", "0.14", FCVAR_CHEAT, "Fire rate for the 50calmg.");
+ConVar rd_50calmg_piercing("rd_50calmg_piercing", "0", FCVAR_CHEAT, "Number of aliens for 50calmg to pierce. Set 0 to disable.");
+ConVar rd_50calmg_piercing_chance("rd_50calmg_piercing_chance", "0.4", FCVAR_CHEAT, "Base pierce chance for each pellet.");
+
 IMPLEMENT_NETWORKCLASS_ALIASED(ASW_Weapon_50CalMG, DT_ASW_Weapon_50CalMG)
 
 BEGIN_NETWORK_TABLE(CASW_Weapon_50CalMG, DT_ASW_Weapon_50CalMG)
@@ -80,17 +85,27 @@ void CASW_Weapon_50CalMG::Precache()
 	BaseClass::Precache();
 }
 
-// float CASW_Weapon_50CalMG::GetMovementScale()
-// {
-// 	return ShouldMarineMoveSlow() ? 0.5f : 0.8f;
-// }
+int CASW_Weapon_50CalMG::GetPierceNum( void )
+{
+	return rd_50calmg_piercing.GetInt();
+}
+
+float CASW_Weapon_50CalMG::GetPierceChance( void )
+{
+	return rd_50calmg_piercing_chance.GetFloat();
+}
+
+float CASW_Weapon_50CalMG::GetFireRate()
+{
+	return rd_50calmg_fire_rate.GetFloat();
+}
 
 float CASW_Weapon_50CalMG::GetWeaponDamage()
 {
 	//float flDamage = 18.0f;
-	float flDamage = GetWeaponInfo()->m_flBaseDamage;
+	float flDamage = rd_50calmg_damage.GetFloat();
 
-// if we decide to allow it in PvP, uncomment and implement this
+//    if we decide to allow it in PvP, uncomment and implement this
 //	if (ASWDeathmatchMode())
 //	{
 //		extern ConVar rd_pvp_50calmg_dmg;

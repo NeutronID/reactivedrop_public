@@ -32,6 +32,11 @@
 
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Weapon_Shotgun, DT_ASW_Weapon_Shotgun )
 
+ConVar rd_shotgun_piercing("rd_shotgun_piercing", "0", FCVAR_CHEAT, "Number of aliens for shotgun pellets to pierce through. 0 to disable.");
+ConVar rd_shotgun_piercing_chance("rd_shotgun_piercing_chance", "0.3", FCVAR_CHEAT, "Base pierce chance for each pellet.");
+ConVar rd_shotgun_fire_rate("rd_shotgun_fire_rate", "1.0", FCVAR_CHEAT, "Firing rate of shotgun.");
+ConVar rd_shotgun_pellet_num("rd_shotgun_pellet_num", "7", FCVAR_CHEAT, "Number of pellets for the shotgun.");
+
 BEGIN_NETWORK_TABLE( CASW_Weapon_Shotgun, DT_ASW_Weapon_Shotgun )
 #ifdef CLIENT_DLL
 	// recvprops
@@ -92,6 +97,16 @@ Activity CASW_Weapon_Shotgun::GetPrimaryAttackActivity( void )
 
 #define PELLET_AIR_VELOCITY	2500
 #define PELLET_WATER_VELOCITY	1500
+
+int CASW_Weapon_Shotgun::GetPierceNum( void )
+{
+	return rd_shotgun_piercing.GetInt();
+}
+
+float CASW_Weapon_Shotgun::GetPierceChance( void )
+{
+	return rd_shotgun_piercing_chance.GetFloat();
+}
 
 void CASW_Weapon_Shotgun::PrimaryAttack( void )
 {
@@ -174,13 +189,12 @@ void CASW_Weapon_Shotgun::PrimaryAttack( void )
 				info.m_flDamage *= pMarine->GetMarineResource()->OnFired_GetDamageScale();
 	#endif
 				// shotgun bullets have a base 50% chance of piercing
-				//float fPiercingChance = 0.5f;
-				//if (pMarine->GetMarineResource() && pMarine->GetMarineProfile() && pMarine->GetMarineProfile()->GetMarineClass() == MARINE_CLASS_SPECIAL_WEAPONS)
-					//fPiercingChance += MarineSkills()->GetSkillBasedValueByMarine(pMarine, ASW_MARINE_SKILL_PIERCING);
-				
-				//pMarine->FirePenetratingBullets(info, 5, fPiercingChance);
+				float fPiercingChance = GetPierceChance();
+				if (pMarine->GetMarineResource() && pMarine->GetMarineProfile() && pMarine->GetMarineProfile()->GetMarineClass() == MARINE_CLASS_SPECIAL_WEAPONS)
+					fPiercingChance += MarineSkills()->GetSkillBasedValueByMarine(pMarine, ASW_MARINE_SKILL_PIERCING);
 
-				//pMarine->FirePenetratingBullets(info, 5, 1.0f, i, false );
+				    pMarine->FirePenetratingBullets(info, GetPierceNum(), 1.0f, i, false );	//Shotgun piercing
+
 				pMarine->FirePenetratingBullets(info, 0, 1.0f, i, false );
 			}
 		}
@@ -324,7 +338,7 @@ float CASW_Weapon_Shotgun::GetWeaponDamage()
 
 int CASW_Weapon_Shotgun::GetNumPellets()
 {
-	return GetWeaponInfo()->m_iNumPellets;
+	return rd_shotgun_pellet_num.GetInt();
 }
 
 
@@ -382,11 +396,12 @@ int CASW_Weapon_Shotgun::ASW_SelectWeaponActivity(int idealActivity)
 float CASW_Weapon_Shotgun::GetFireRate()
 {
 	//float flRate = 1.0f;
-	float flRate = GetWeaponInfo()->m_flFireRate;
+	//float flRate = GetWeaponInfo()->m_flFireRate;
 
 	//CALL_ATTRIB_HOOK_FLOAT( flRate, mod_fire_rate );
 
-	return flRate;
+    //return flRate;
+	return rd_shotgun_fire_rate.GetFloat();
 }
 
 #ifdef CLIENT_DLL

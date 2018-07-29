@@ -68,6 +68,7 @@ PRECACHE_WEAPON_REGISTER(asw_weapon_railgun);
 
 extern ConVar asw_weapon_max_shooting_distance;
 ConVar asw_railgun_force_scale("asw_railgun_force_scale", "60.0f", FCVAR_REPLICATED, "Force of railgun shots");
+ConVar rd_railgun_fire_rate("rd_railgun_fire_rate", "0.6f", FCVAR_CHEAT, "rail gun fire rate.");
 
 #ifndef CLIENT_DLL
 extern ConVar asw_debug_marine_damage;
@@ -747,9 +748,10 @@ void CASW_Weapon_Railgun::SecondaryAttack()
 float CASW_Weapon_Railgun::GetFireRate()
 {
 	//float flRate = 0.1f;
-	float flRate = GetWeaponInfo()->m_flFireRate;
+	//float flRate = GetWeaponInfo()->m_flFireRate;
 
 	//CALL_ATTRIB_HOOK_FLOAT( flRate, mod_fire_rate );
 
-	return flRate;
+	//return flRate;
+    return rd_railgun_fire_rate.GetFloat();
 }

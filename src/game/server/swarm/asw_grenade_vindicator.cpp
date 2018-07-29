@@ -24,6 +24,7 @@ ConVar asw_vindicator_grenade_min_detonation_time("asw_vindicator_grenade_min_de
 ConVar asw_vindicator_grenade_mass("asw_vindicator_grenade_mass", "10", FCVAR_CHEAT, "Mass of indendiary/cluster grenade");
 ConVar asw_vindicator_grenade_fuse("asw_vindicator_grenade_fuse", "3", FCVAR_CHEAT, "Fuse time on incendiary grenades");
 ConVar rd_grenade_collision_fix("rd_grenade_collision_fix", "1", FCVAR_CHEAT, "Set to 1 to not impact on dropped weapons & items");	//DRAVEN ~FIXGLITEMCOLLISION~ Added check to exclude item drops
+ConVar rd_vindicator_grenade_radius("rd_vindicator_grenade_radius", "220.0f", FCVAR_CHEAT, "radius grenades");
 
 const float GRENADE_COEFFICIENT_OF_RESTITUTION = 0.2f;
 
@@ -64,7 +65,7 @@ void CASW_Grenade_Vindicator::Spawn( void )
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
 
 	m_flDamage		= sk_plr_dmg_asw_r_g.GetFloat();
-	m_DmgRadius		= 220.0f;
+	m_DmgRadius		= rd_vindicator_grenade_radius.GetFloat();
 
 	Ignite(3.0, false, 0, false);
 
@@ -387,7 +388,7 @@ void CASW_Grenade_Vindicator::BurntAlien(CBaseEntity *pAlien)
 
 		CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(m_hFirer.Get());		
 		if (pMarine && pMarine->GetMarineResource())
-		{	
+		{
 			//Msg("kicked grenade is burning %s %d\n", pAlien->GetClassname(), pAlien->entindex());
 			pMarine->GetMarineResource()->m_iKickedGrenadeKills++;
 		}

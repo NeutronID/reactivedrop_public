@@ -45,6 +45,10 @@ END_PREDICTION_DATA()
 LINK_ENTITY_TO_CLASS( asw_weapon_vindicator, CASW_Weapon_Assault_Shotgun );
 PRECACHE_WEAPON_REGISTER(asw_weapon_vindicator);
 
+ConVar rd_vindicator_piercing("rd_vindicator_piercing", "0", FCVAR_CHEAT, "Number of aliens for vindicator to pierce. Set 0 to disable.");
+ConVar rd_vindicator_piercing_chance("rd_vindicator_piercing_chance", "0.3", FCVAR_CHEAT, "Base pierce chance for each pellet.");
+ConVar rd_vindicator_fire_rate("rd_vindicator_fire_rate", "0.65", FCVAR_CHEAT, "Fire rate for the vindicator.");
+
 #ifndef CLIENT_DLL
 extern ConVar asw_debug_marine_damage;
 ConVar asw_vindicator_grenade_velocity("asw_vindicator_grenade_velocity", "3.0", FCVAR_CHEAT, "Scale to the vindicator grenade initial velocity");
@@ -69,7 +73,6 @@ CASW_Weapon_Assault_Shotgun::CASW_Weapon_Assault_Shotgun()
 	m_fSlowTime = 0;
 }
 
-
 CASW_Weapon_Assault_Shotgun::~CASW_Weapon_Assault_Shotgun()
 {
 
@@ -90,6 +93,20 @@ bool CASW_Weapon_Assault_Shotgun::ShouldMarineMoveSlow()
 	return m_fSlowTime > gpGlobals->curtime || IsReloading();
 }
 
+int CASW_Weapon_Assault_Shotgun::GetPierceNum( void )
+{
+	return rd_vindicator_piercing.GetInt();
+}
+
+float CASW_Weapon_Assault_Shotgun::GetFireRate()
+{
+	return rd_vindicator_fire_rate.GetFloat();	
+}
+
+float CASW_Weapon_Assault_Shotgun::GetPierceChance( void )
+{
+	return rd_vindicator_piercing_chance.GetFloat();
+}
 
 void CASW_Weapon_Assault_Shotgun::SecondaryAttack()
 {

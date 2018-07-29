@@ -35,6 +35,10 @@ extern ConVar asw_weapon_max_shooting_distance;
 extern ConVar sk_plr_dmg_asw_sg; 
 extern ConVar asw_weapon_force_scale;
 
+ConVar rd_sniper_rifle_fr("rd_sniper_rifle_fr", "1.2", FCVAR_CHEAT, "Sets sniper rifle fire rate.");
+ConVar rd_sniper_rifle_piercing("rd_sniper_rifle_piercing", "0", FCVAR_CHEAT, "Number of aliens for sniper rifle to pierce. Set 0 to disable.");
+ConVar rd_sniper_rifle_piercing_chance("rd_sniper_rifle_piercing_chance", "0.3", FCVAR_CHEAT, "Base pierce chance for each pellet.");
+
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Weapon_Sniper_Rifle, DT_ASW_Weapon_Sniper_Rifle )
 
 BEGIN_NETWORK_TABLE( CASW_Weapon_Sniper_Rifle, DT_ASW_Weapon_Sniper_Rifle )
@@ -88,10 +92,14 @@ CASW_Weapon_Sniper_Rifle::CASW_Weapon_Sniper_Rifle()
 #endif
 }
 
-
 CASW_Weapon_Sniper_Rifle::~CASW_Weapon_Sniper_Rifle()
 {
 
+}
+
+float CASW_Weapon_Sniper_Rifle::GetFireRate()
+{
+	return rd_sniper_rifle_fr.GetFloat();
 }
 
 #define PELLET_AIR_VELOCITY	3500
@@ -253,6 +261,16 @@ void CASW_Weapon_Sniper_Rifle::ItemPostFrame( void )
 	{
 		m_bZoomed = !IsZoomed();
 	}
+}
+
+int CASW_Weapon_Sniper_Rifle::GetPierceNum( void )
+{
+	return rd_sniper_rifle_piercing.GetInt();
+}
+
+float CASW_Weapon_Sniper_Rifle::GetPierceChance( void )
+{
+	return rd_sniper_rifle_piercing_chance.GetFloat();
 }
 
 float CASW_Weapon_Sniper_Rifle::GetWeaponDamage()

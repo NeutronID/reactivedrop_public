@@ -18,6 +18,8 @@
 #include "tier0/memdbgon.h"
 
 ConVar rd_deagle_bigalien_dmg_scale("rd_deagle_bigalien_dmg_scale", "0.5", FCVAR_CHEAT | FCVAR_REPLICATED, "Used to scale down desert eagles damage against Shieldbug, Mortarbug, Harvester, Drone Uber, Queen");
+ConVar rd_deagle_piercing("rd_deagle_piercing", "0", FCVAR_CHEAT, "Number of aliens for deagle to pierce. Set 0 to disable.");
+ConVar rd_deagle_piercing_chance("rd_deagle_piercing_chance", "0.0", FCVAR_CHEAT, "Base pierce chance for each pellet.");
 
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Weapon_DEagle, DT_ASW_Weapon_DEagle )
 
@@ -95,6 +97,16 @@ void CASW_Weapon_DEagle::PrimaryAttack()
 			m_bCanShoot = false;
 		}
 	}
+}
+
+int CASW_Weapon_DEagle::GetPierceNum( void )
+{
+	return rd_deagle_piercing.GetInt();
+}
+
+float CASW_Weapon_DEagle::GetPierceChance( void )
+{
+	return rd_deagle_piercing_chance.GetFloat();
 }
 
 float CASW_Weapon_DEagle::GetWeaponDamage()

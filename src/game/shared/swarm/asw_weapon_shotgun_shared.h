@@ -28,6 +28,10 @@ public:
 	virtual ~CASW_Weapon_Shotgun();
 	void Precache();
 
+	//Shotgun Piercing
+	int GetPierceNum( void );
+	float GetPierceChance( void );
+
 	float	GetFireRate( void );
 	virtual bool SupportsBayonet();
 	virtual float GetWeaponDamage();

@@ -21,6 +21,12 @@ public:
 
 	virtual void SecondaryAttack() {}	// don't inherit secondary attack 
 
+	//Devastator Piercing
+	int GetPierceNum( void );
+	float GetPierceChance( void );
+	float GetFireRate(void);
+	virtual int GetNumPellets();
+
 	//virtual void PrimaryAttack();
 	//virtual void ItemPostFrame();
 

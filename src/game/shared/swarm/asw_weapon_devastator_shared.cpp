@@ -28,6 +28,11 @@ END_PREDICTION_DATA()
 LINK_ENTITY_TO_CLASS(asw_weapon_devastator, CASW_Weapon_Devastator);
 PRECACHE_WEAPON_REGISTER(asw_weapon_devastator);
 
+ConVar rd_devastator_fire_rate("rd_devastator_fire_rate", "0.2", FCVAR_CHEAT, "Fire rate for the devastator.");
+ConVar rd_devastator_piercing("rd_devastator_piercing", "0", FCVAR_CHEAT, "Number of aliens for devastator to pierce. Set 0 to disable.");
+ConVar rd_devastator_piercing_chance("rd_devastator_piercing_chance", "0.2", FCVAR_CHEAT, "Base pierce chance for each pellet.");
+ConVar rd_devastator_pellet_num("rd_devastator_pellet_num", "7", FCVAR_CHEAT, "Number of pellets for the devastator.");
+
 #ifndef CLIENT_DLL
 BEGIN_DATADESC(CASW_Weapon_Devastator)
 //DEFINE_FIELD( m_bCanShoot, FIELD_TIME ),
@@ -54,6 +59,26 @@ void CASW_Weapon_Devastator::Precache()
 
 
 	BaseClass::Precache();
+}
+
+int CASW_Weapon_Devastator::GetPierceNum( void )
+{
+	return rd_devastator_piercing.GetInt();
+}
+
+float CASW_Weapon_Devastator::GetFireRate()
+{
+	return rd_devastator_fire_rate.GetFloat();	
+}
+
+float CASW_Weapon_Devastator::GetPierceChance( void )
+{
+	return rd_devastator_piercing_chance.GetFloat();
+}
+
+int CASW_Weapon_Devastator::GetNumPellets()
+{
+	return rd_devastator_pellet_num.GetInt();
 }
 
 float CASW_Weapon_Devastator::GetWeaponDamage()
