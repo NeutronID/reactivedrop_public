@@ -1306,6 +1306,12 @@ void CASW_Parasite::SetHealthByDifficultyLevel()
 
 void CASW_Parasite::NPCThink()
 {
+	// re-use these statements R435 to fix vents parasite disappeared bug.   
+	if (m_bDoEggIdle || stricmp(gpGlobals->mapname.ToCStr(), "asi-jac4-residential"))
+	{
+        SetTagState(ASW_TAG_SAFE);
+    }
+
 	BaseClass::NPCThink();
 
 	if ( GetEfficiency() < AIE_DORMANT && GetSleepState() == AISS_AWAKE 
