@@ -168,6 +168,7 @@ extern ConVar old_radius_damage;
 	ConVar rd_reassign_marines("rd_reassign_marines", "1", FCVAR_NONE, "For dev, if 1 ReassignMarines function will be called");
 	ConVar rd_ready_mark_override("rd_ready_mark_override", "0", FCVAR_NONE, "If set to 1 all players will be auto ready, the green ready mark will be set to checked state");
 	ConVar rd_server_shutdown_when_empty( "rd_server_shutdown_when_empty", "0", FCVAR_NONE, "Server will shutdown after last player left." );
+	ConVar rd_map_configs("rd_map_configs", "1", FCVAR_NONE, "On mapchange: exec asw_mapconfigs/<bspname> and asw_mapconfigs/custom/<bspname>.");
 	ConVar rd_auto_kick_low_level_player( "rd_auto_kick_low_level_player", "0", FCVAR_CHEAT, "Server auto kick players below level 30 from challenges which have this cvar set to 1. This cvar is meant for players who use dedicated server browser to join games, since Public Games window already restricts filters to max Hard difficulty and challenge being disabled" );
 
 	static void UpdateMatchmakingTagsCallback_Server( IConVar *pConVar, const char *pOldValue, float flOldValue )
@@ -8008,6 +8009,20 @@ void CAlienSwarm::LevelInitPostEntity()
 			}
 		}
 	}
+
+	char execCmd[350];
+	Q_snprintf(execCmd, sizeof(execCmd), "exec server\n", mapName);
+	engine->ServerCommand(execCmd);
+	if (rd_map_configs.GetBool() && !IsLobbyMap())
+	{
+		Q_snprintf(execCmd, sizeof(execCmd), "exec rd_mapconfigs/%s\n", mapName);
+		engine->ServerCommand(execCmd);
+		DevMsg("Ran command '%s'\n", execCmd);
+
+		Q_snprintf(execCmd, sizeof(execCmd), "exec rd_mapconfigs/custom/%s\n", mapName);
+		engine->ServerCommand(execCmd);
+		DevMsg("Ran command '%s'\n", execCmd);
+    }
 
 	// create the game resource
 	if (ASWGameResource()!=NULL)
