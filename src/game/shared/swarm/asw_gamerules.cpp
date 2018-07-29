@@ -2243,6 +2243,10 @@ void CAlienSwarm::StartMission()
 	StartAllAmbientSounds();
 
 	// carnage mode?
+	if (IsCarnageMode())
+	{
+		ASW_ApplyCarnage_f(2);
+    }
 	float flCarnage = 1;
 	if (IsCarnageMode())
 	{

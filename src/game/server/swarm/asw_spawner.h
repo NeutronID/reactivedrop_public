@@ -40,7 +40,7 @@ public:
 
 	bool					ApplyCarnageMode( float fScaler, float fInvScaler );
 	void					SetInfinitelySpawnAliens( bool spawn_infinitely = true );
-
+    bool					RandomizeUber( float percent );
 	enum SpawnerState_t
 	{
 		SST_StartSpawningWhenMissionStart,

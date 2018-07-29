@@ -398,6 +398,7 @@ void CASW_Spawner::MissionStart()
 	}
 		if (rd_spawner_impossimode.GetBool())
 			m_bInfiniteAliens = true;
+
 	if (m_SpawnerState == SST_StartSpawningWhenMissionStart)
 		SetSpawnerState(SST_Spawning);
 }
@@ -511,6 +512,26 @@ bool CASW_Spawner::ApplyCarnageMode( float fScaler, float fInvScaler )
 
 		return true;
 	}
+	return false;
+}
+
+bool CASW_Spawner::RandomizeUber(float percent)
+{
+	if (m_AlienClassNum == g_nDroneClassEntry || m_AlienClassNum == g_nUberDroneClassEntry)
+		m_AlienClassName = ASWSpawnManager()->GetAlienClass( g_nDroneClassEntry )->m_iszAlienClass;	//Reset spawner
+
+	if ( (m_AlienClassNum == g_nDroneClassEntry || m_AlienClassNum == g_nUberDroneClassEntry) && random->RandomFloat() <= percent)
+	{
+		m_AlienClassName = ASWSpawnManager()->GetAlienClass( g_nUberDroneClassEntry )->m_iszAlienClass;
+		DevMsg("Set m_AlienClassNum to %i\n", m_AlienClassNum);
+		return true;
+	}
+	else if (m_AlienClassNum == g_nDroneClassEntry || m_AlienClassNum == g_nUberDroneClassEntry)	//Prevents asw_carnage_randomize_uber from compounding on itself if used multiple times, and asw_carnage_randomize_uber 0 should change all uber spawners back to drone ones.
+	{
+		m_AlienClassName = ASWSpawnManager()->GetAlienClass( g_nDroneClassEntry )->m_iszAlienClass;
+		DevMsg("Set m_AlienClassNum to %i\n", m_AlienClassNum);
+		return false;
+	}
 
 	return false;
 }
@@ -578,6 +599,23 @@ void ASW_ApplyInfiniteSpawners_f(void)
 	}
 }
 
+void ASW_RandomUber_f(float percent)
+{
+	CBaseEntity* pEntity = NULL;
+	int iSpawnersChanged = 0;
+	while ((pEntity = gEntList.FindEntityByClassname( pEntity, "asw_spawner" )) != NULL)
+	{
+		CASW_Spawner* pSpawner = dynamic_cast<CASW_Spawner*>(pEntity);
+		if (pSpawner)
+		{
+			if ( pSpawner->RandomizeUber(percent) )
+			{
+				iSpawnersChanged++;
+			}
+		}
+	}
+	DevMsg("%i asw_spawners had their output changed by asw_carnage_randomize_uber.\n", iSpawnersChanged);
+}
 
 void asw_carnage_f(const CCommand &args)
 {
@@ -588,4 +626,20 @@ void asw_carnage_f(const CCommand &args)
 	ASW_ApplyCarnage_f( atof( args[1] ) );
 }
 
-ConCommand asw_carnage( "asw_carnage", asw_carnage_f, "Scales the number of aliens each spawner will put out", FCVAR_CHEAT );
+void asw_carnage_random_uber_f(const CCommand &args)
+{
+	if (args.ArgC() < 2)
+	{
+		Msg("Please supply a percentage of spawners to randomize by\n");
+	}
+	else if (atof(args[1]) < 0.0f || atof(args[1]) > 1.0f)
+	{
+		Msg("Value must be between 0 and 1.0\n");
+	}
+	else
+	{
+		ASW_RandomUber_f(atof(args[1]));
+	}
+}
+
+ConCommand asw_carnage_randomize_uber( "asw_carnage_randomize_uber", asw_carnage_random_uber_f, "Randomizes asw_drone spawners with asw_drone_uber spawners.", FCVAR_CHEAT);
