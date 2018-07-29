@@ -34,6 +34,8 @@ public:
 	#endif
 
 	void DoJumpJet();
+private:
+	bool m_bInfinite;
 };
 
 
