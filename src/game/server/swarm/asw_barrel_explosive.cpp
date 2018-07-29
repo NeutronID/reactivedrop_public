@@ -17,7 +17,8 @@
 
 ConVar asw_barrel_health_base( "asw_barrel_health_base", "3", FCVAR_CHEAT, "Health of barrel at level 1" );
 ConVar asw_barrel_health_growth( "asw_barrel_health_growth", "0.15", FCVAR_CHEAT, "% change in health per level" );
-
+ConVar rd_barrel_explosive_damage("rd_barrel_explosive_damage", "200.0f", FCVAR_CHEAT, "Sets the barrel explosive damage.");
+ConVar rd_barrel_explosive_radius("rd_barrel_explosive_radius", "160.0f", FCVAR_CHEAT, "Sets the barrel explosive radius damage.");
 
 LINK_ENTITY_TO_CLASS( asw_barrel_explosive, CASW_Barrel_Explosive );
 
@@ -28,7 +29,8 @@ END_DATADESC()
 
 CASW_Barrel_Explosive::CASW_Barrel_Explosive()
 {
-	m_iExplosionDamage = 200;
+	//m_iExplosionDamage = 200;
+	m_iExplosionDamage = rd_barrel_explosive_damage.GetFloat();
 }
 
 void CASW_Barrel_Explosive::Spawn()
@@ -173,7 +175,8 @@ void CASW_Barrel_Explosive::DoExplosion()
 	// damage to nearby things
 	CTakeDamageInfo info( this, ( m_hAttacker.Get() ? m_hAttacker.Get() : this ), m_iExplosionDamage, DMG_BLAST );
 	info.SetDamageCustom( DAMAGE_FLAG_HALF_FALLOFF );
-	ASWGameRules()->RadiusDamage( info, GetAbsOrigin(), 160.0f, CLASS_NONE, NULL );
+	//ASWGameRules()->RadiusDamage( info, GetAbsOrigin(), 160.0f, CLASS_NONE, NULL );
+	ASWGameRules()->RadiusDamage( info, GetAbsOrigin(), rd_barrel_explosive_radius.GetFloat(), CLASS_NONE, NULL );
 }
 
 void CASW_Barrel_Explosive::OnDifficultyChanged( int iDifficulty )
@@ -189,7 +192,9 @@ void CASW_Barrel_Explosive::InitHealth()
 	m_iHealth = m_iHealth + m_iHealth * flHealthGrowth * ( ASWGameRules()->GetMissionDifficulty() - 1 );
 	SetMaxHealth( m_iHealth );
 
-	m_iExplosionDamage = 200.0f;
+	//m_iExplosionDamage = 200.0f;
+    m_iExplosionDamage = rd_barrel_explosive_damage.GetFloat();
+
 	/*
 	int iExplosiveDamage = 120.0f;
 	m_iExplosionDamage = iExplosiveDamage + iExplosiveDamage * flHealthGrowth * ( ASWGameRules()->GetMissionDifficulty() - 1 );
