@@ -26,11 +26,13 @@ END_SEND_TABLE()
 BEGIN_DATADESC( CASW_Sentry_Top_Icer )
 END_DATADESC()
 
-extern ConVar asw_weapon_max_shooting_distance;
-extern ConVar asw_weapon_force_scale;
-extern ConVar asw_difficulty_alien_health_step;
+//extern ConVar asw_weapon_max_shooting_distance;
+//extern ConVar asw_weapon_force_scale;
+//extern ConVar asw_difficulty_alien_health_step;
 
 ConVar asw_sentry_debug_aim("asw_sentry_debug_aim", "0", FCVAR_CHEAT, "Draw debug lines for sentry gun aim");
+ConVar rd_sentry_icer_amount("rd_sentry_icer_amount", "0.4", FCVAR_CHEAT, "Sets the freeze amount for the icer sentry.");
+ConVar rd_sentry_icer_range("rd_sentry_icer_range", "300", FCVAR_CHEAT, "Sets the shoot range of the icer sentry.");
 
 
 #define ASW_SENTRY_FIRE_RATE 0.1f		// time in seconds between each shot
@@ -45,7 +47,8 @@ void CASW_Sentry_Top_Icer::SetTopModel()
 
 CASW_Sentry_Top_Icer::CASW_Sentry_Top_Icer() : CASW_Sentry_Top_Flamer(CASW_Weapon_Flamer::EXTINGUISHER_PROJECTILE_AIR_VELOCITY)
 {
-	m_flShootRange = 300;
+	//m_flShootRange = 300;
+    m_flShootRange = rd_sentry_icer_range.GetFloat();
 	// increase turn rate until I get better leading code in (so it can actually hit something)
 	m_fTurnRate *= 3.0f;
 }
@@ -120,7 +123,7 @@ void CASW_Sentry_Top_Icer::FireProjectiles( int numShotsToFire, ///< number of p
 			this /*, pMarineDeployer*/ );
 		if ( pProjectile )
 		{
-			pProjectile->SetFreezeAmount( 0.4f );
+			pProjectile->SetFreezeAmount( rd_sentry_icer_amount.GetFloat() );
 		}
 	}
 }
@@ -221,11 +224,8 @@ CAI_BaseNPC * CASW_Sentry_Top_Icer::SelectOptimalEnemy()
 			best = i;
 	}
 
-	// NDebugOverlay::EntityBounds(candidates[best], 255, 255, 0, 255, 0.2f );
+	if (asw_sentry_debug_aim.GetBool())
+		NDebugOverlay::EntityBounds(candidates[best]->GetBaseEntity(), 255, 255, 0, 255, 0.2f );
 
 	return candidates[best];
 }
-
-
-
-
