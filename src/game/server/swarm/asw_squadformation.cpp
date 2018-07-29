@@ -24,6 +24,7 @@ ConVar asw_follow_threshold( "asw_follow_threshold", "40", FCVAR_CHEAT, "Marines
 ConVar asw_squad_debug( "asw_squad_debug", "1", FCVAR_CHEAT, "Draw debug overlays for squad movement" );
 ConVar rd_bots_ignore_bombs("rd_bots_ignore_bombs", "1", FCVAR_NONE, "If 0 AI marines will try to find safe place when they see mortar's or boomer's bomb");
 ConVar rd_use_info_nodes("rd_use_info_nodes", "0", FCVAR_NONE, "If there are no info_marine_hint nodes, info_node will be used instead");
+extern ConVar rd_boomer_bomb_radius;
 
 #define OUT_OF_BOOMER_BOMB_RANGE FLT_MAX
 
@@ -377,13 +378,13 @@ Vector CASW_SquadFormation::GetLdrAnglMatrix( const Vector &origin, const QAngle
 float GetClosestBoomerBlobDistSqr( const Vector &vecPosition )
 {
 	float flClosestBoomerBlobDistSqr = OUT_OF_BOOMER_BOMB_RANGE;
-
+    const float flExplosiveRadius = rd_boomer_bomb_radius.GetFloat();	//match boomer blob radius with cvar
 	if ( !rd_bots_ignore_bombs.GetBool() )
 	{
 		for( int iBoomerBlob = 0; iBoomerBlob < g_aExplosiveProjectiles.Count(); iBoomerBlob++ )
 		{
  			CBaseEntity *pExplosive = g_aExplosiveProjectiles[ iBoomerBlob ];
-			const float flExplosiveRadius = 240.0f;	// bad hardcoded to match boomer blob radius
+			//const float flExplosiveRadius = 240.0f;	// bad hardcoded to match boomer blob radius
 
 			float flDistSqr = pExplosive->GetAbsOrigin().DistToSqr( vecPosition );
 			if( flDistSqr < Square( flExplosiveRadius ) && flDistSqr < flClosestBoomerBlobDistSqr )

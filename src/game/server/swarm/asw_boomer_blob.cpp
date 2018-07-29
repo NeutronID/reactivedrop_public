@@ -92,7 +92,7 @@ void CASW_Boomer_Blob::Spawn( void )
 
 	ResetSequence( LookupSequence( "MortarBugProjectile_Closed" ) );
 
-	//EmitSound( "ASWGrenade.Alarm" );
+	EmitSound( "ASWGrenade.Alarm" );
 	SetFuseLength( asw_boomer_blob_fuse.GetFloat() + RandomFloat( -0.25, 0.66f ) );	
 	
 
