@@ -157,6 +157,8 @@ enum
 #define SWARM_MORTARBUG_MODEL	"models/aliens/mortar/mortar.mdl"
 #define	SWARM_NEW_HARVESTER_MODEL	"models/aliens/harvester/harvester.mdl"
 
+#define ASW_BETA_BUZZER_MODEL		"models/swarm/buzzer/buzzer.mdl"
+
 #define ASW_BLIP_SPEECH_INTERVAL 10.0f
 
 // when time scale drops below this, the stim cam will appear

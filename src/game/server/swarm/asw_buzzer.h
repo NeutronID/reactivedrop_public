@@ -132,6 +132,9 @@ public:
 		m_iHealth = 0;
 	}
 
+	const char	   *b_AlienModelName;
+	bool 			bOldBuzzer;
+
 	enum BuzzerConditions
 	{
 		COND_ASW_BUZZER_START_ATTACK = BaseClass::NEXT_CONDITION,	// We are able to do a bombing run on the current enemy.

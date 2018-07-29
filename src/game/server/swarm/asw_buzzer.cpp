@@ -14,7 +14,7 @@
 #include "ndebugoverlay.h"
 #include "decals.h"
 #include "gib.h"
-#include "game.h"			
+#include "game.h"
 #include "ai_interactions.h"
 #include "IEffects.h"
 #include "vstdlib/random.h"
@@ -82,8 +82,11 @@
 ConVar	sk_asw_buzzer_health( "sk_asw_buzzer_health","30", FCVAR_CHEAT, "Health of the buzzer");
 ConVar	sk_asw_buzzer_melee_dmg( "sk_asw_buzzer_melee_dmg","15", FCVAR_CHEAT, "Damage caused by buzzer");
 ConVar	sk_asw_buzzer_melee_interval( "sk_asw_buzzer_melee_interval", "1.5", FCVAR_CHEAT, "Min time between causing damage to marines");
-ConVar	sk_asw_buzzer_v2( "sk_asw_buzzer_v2","1", FCVAR_CHEAT, "");
-ConVar asw_buzzer_poison_duration("asw_buzzer_poison_duration", "0.6f", FCVAR_CHEAT, "Base buzzer poison blur duration. This scales up to double the value based on mission difficulty.");
+/*ConVar	sk_asw_buzzer_v2( "sk_asw_buzzer_v2","1", FCVAR_CHEAT, ""); // empty cvar such does not exist*/
+ConVar  asw_buzzer_poison_duration("asw_buzzer_poison_duration", "0.6f", FCVAR_CHEAT, "Base buzzer poison blur duration. This scales up to double the value based on mission difficulty.");
+ConVar  rd_buzzer_beta_health( "rd_buzzer_beta_health","120", FCVAR_CHEAT, "Health of the beta buzzer");
+ConVar  rd_old_buzzer( "rd_old_buzzer","0", FCVAR_CHEAT, "0 = buzzer, 1 = beta buzzer, 2 = random all.");
+
 extern ConVar showhitlocation;
 extern ConVar asw_debug_alien_damage;
 extern ConVar asw_alien_speed_scale_easy;
@@ -259,6 +262,8 @@ CASW_Buzzer::CASW_Buzzer()
 	m_iHealthBonus = 0;
 	m_fSizeScale = 1.0f;
 	m_fSpeedScale = 1.0f;
+    b_AlienModelName = rd_old_buzzer.GetInt()==2 ? RandomFloat()<=0.5f ? ASW_BETA_BUZZER_MODEL:ASW_BUZZER_MODEL :
+					   rd_old_buzzer.GetInt()==1 ? ASW_BETA_BUZZER_MODEL:ASW_BUZZER_MODEL;
 }
 
 CASW_Buzzer::~CASW_Buzzer()
@@ -514,8 +519,11 @@ void CASW_Buzzer::ASWTraceBleed( float flDamage, const Vector &vecDir, trace_t *
 
 void CASW_Buzzer::DeathSound(  const CTakeDamageInfo &info )
 {
-	CPASAttenuationFilter filter2( this, "ASW_Buzzer.Death" );
-	EmitSound( filter2, entindex(), "ASW_Buzzer.Death" );
+    //individual death sound for buzzer/beta buzzer
+	//CPASAttenuationFilter filter2( this, "ASW_Buzzer.Death" );
+	//EmitSound( filter2, entindex(), "ASW_Buzzer.Death" );
+	CPASAttenuationFilter filter2(this, bOldBuzzer ? "Ranger.GibSplatHeavy" : "ASW_Buzzer.Death");
+	EmitSound(filter2, entindex(), bOldBuzzer ? "Ranger.GibSplatHeavy" : "ASW_Buzzer.Death");
 }
 
 void CASW_Buzzer::PainSound(  const CTakeDamageInfo &info )
@@ -1403,7 +1411,9 @@ void CASW_Buzzer::Slice( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 		flDamage = 1.0f;
 	}
 
-	CTakeDamageInfo info( this, this, flDamage, DMG_SLASH | DMG_BLURPOISON );
+	//disable blur if beta buzzer
+	//CTakeDamageInfo info( this, this, flDamage, DMG_SLASH | DMG_BLURPOISON );
+	CTakeDamageInfo info( this, this, flDamage, bOldBuzzer ? DMG_SLASH : DMG_SLASH | DMG_BLURPOISON);
 
 	Vector dir = (tr.endpos - tr.startpos);
 	if ( dir == vec3_origin )
@@ -1967,6 +1977,10 @@ void CASW_Buzzer::Precache(void)
 	PrecacheModel( ASW_BUZZER_MODEL );
 	PropBreakablePrecacheAll( MAKE_STRING(ASW_BUZZER_MODEL) );
 		
+	PrecacheModel( ASW_BETA_BUZZER_MODEL );
+	PropBreakablePrecacheAll( MAKE_STRING(ASW_BETA_BUZZER_MODEL) );
+	PrecacheScriptSound( "Ranger.GibSplatHeavy" );
+	PrecacheScriptSound( "Misc.Geiger" );
 	PrecacheScriptSound( "ASW_Buzzer.Attack" );
 	PrecacheScriptSound( "ASW_Buzzer.Death" );
 	PrecacheScriptSound( "ASW_Buzzer.Pain" );
@@ -2153,7 +2167,8 @@ void CASW_Buzzer::Spawn(void)
 {
 	Precache();
 
-	SetModel( ASW_BUZZER_MODEL );
+	//SetModel( ASW_BUZZER_MODEL );
+	SetModel( b_AlienModelName );
 	SetHullType(HULL_TINY_CENTERED); 
 	SetHullSizeNormal();
 
@@ -2201,6 +2216,7 @@ void CASW_Buzzer::Spawn(void)
 	// for instance, we don't want him to bob whilst he's waiting for a script. This allows designers
 	// to 'hide' buzzers in small places. (sjb)
 	SetNoiseMod( ASW_BUZZER_NOISEMOD_HIDE, ASW_BUZZER_NOISEMOD_HIDE, ASW_BUZZER_NOISEMOD_HIDE );
+	bOldBuzzer = !Q_strcmp(b_AlienModelName, ASW_BETA_BUZZER_MODEL);
 
 	// Start out with full power! 
 	m_fEnginePowerScale = GetMaxEnginePower();
@@ -3186,6 +3202,7 @@ void CASW_Buzzer::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bo
 {
 	return;		// use ASW_Ignite instead
 }
+
 void CASW_Buzzer::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAttacker, CBaseEntity *pDamagingWeapon /*= NULL */ )
 {
 	if (AllowedToIgnite())
@@ -3263,10 +3280,9 @@ void CASW_Buzzer::MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize )
 	m_flNextMoanSound = gpGlobals->curtime + duration + 9999;
 }
 
-
 void CASW_Buzzer::SetHealthByDifficultyLevel()
 {	
-	SetHealth(ASWGameRules()->ModifyAlienHealthBySkillLevel(sk_asw_buzzer_health.GetFloat()) + m_iHealthBonus);
+	SetHealth(ASWGameRules()->ModifyAlienHealthBySkillLevel(bOldBuzzer ? rd_buzzer_beta_health.GetFloat() : sk_asw_buzzer_health.GetFloat()) + m_iHealthBonus);
 }
 
 void CASW_Buzzer::ElectroStun( float flStunTime )
