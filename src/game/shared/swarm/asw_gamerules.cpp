@@ -119,6 +119,7 @@
 
 extern ConVar old_radius_damage;
 
+ConVar rd_debug_alien_ignite("rd_debug_alien_ignite", "0", FCVAR_NONE, "Show debug messages for ignition/explosive effects by alien");
 #define ASW_LAUNCHING_STEP 0.25f			// time between each stage of launching
 
 #ifndef CLIENT_DLL
@@ -8309,6 +8310,22 @@ bool CAlienSwarm::IsHardcoreFF()
 bool CAlienSwarm::IsOnslaught()
 {
 	return ( asw_horde_override.GetBool() || asw_wanderer_override.GetBool() );
+}
+
+void CAlienSwarm::MarineIgnite(CBaseEntity *pOther, const CTakeDamageInfo &info, const char *alienLabel, const char *damageTypes)	//ignite effect
+{
+	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+	if (!pMarine || pMarine->IsOnFire())	//won't ignite if marine already body on fire
+		return;
+
+	pMarine->ASW_Ignite( 1.5f, 1.5, info.GetAttacker(), info.GetWeapon() );
+	MarineDamageDebugInfo(pMarine, "ignited ", alienLabel, damageTypes);
+}
+
+void CAlienSwarm::MarineDamageDebugInfo(CBaseEntity *pOther, const char *damageInfo, const char *alienLabel, const char *damageTypes)
+{
+	if (rd_debug_alien_ignite.GetBool())	//debug marine damage effect
+		Msg("----- Player %s has %s by %s %s -----\n", pOther->GetPlayerName(), damageInfo, alienLabel, damageTypes);
 }
 
 bool CAlienSwarm::HaveSavedConvar( const ConVarRef & cvar )

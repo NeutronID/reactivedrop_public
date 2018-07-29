@@ -50,7 +50,7 @@ public:
 	void Precache();
 	void Spawn();
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_ALIEN_GOO; }
-	
+	const char			*alienLabel, *damageTypes;
 	virtual int OnTakeDamage( const CTakeDamageInfo &info );
 	virtual void Ignite( float flFlameLifetime, bool bNPCOnly = true, float flSize = 0.0f, bool bCalledByLevelDesigner = false );
 	virtual void Extinguish();

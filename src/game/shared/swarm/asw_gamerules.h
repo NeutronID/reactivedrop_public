@@ -101,7 +101,10 @@ public:
 	
 	float GetMarineDeathCamInterp( bool bIgnoreCvar = false );
 
+	virtual void	MarineIgnite(CBaseEntity *pOther, const CTakeDamageInfo &info, const char *alienLabel, const char *damageTypes);
+	virtual void	MarineDamageDebugInfo(CBaseEntity *pOther, const char *alienLabel, const char *damageInfo, const char *damageTypes);
 	float m_fWeaponDisassemble;
+
 #else
 
 	DECLARE_SERVERCLASS_NOBASE(); // This makes datatables able to access our private vars.
@@ -151,6 +154,8 @@ public:
 	virtual void			ClientCommandKeyValues( edict_t *pEntity, KeyValues *pKeyValues );
 	void OnPlayerFullyJoined( CASW_Player *pPlayer );
 
+	virtual void	MarineIgnite(CBaseEntity *pOther, const CTakeDamageInfo &info, const char *alienLabel, const char *damageTypes);
+	virtual void	MarineDamageDebugInfo(CBaseEntity *pOther, const char *alienLabel, const char *damageInfo, const char *damageTypes);
 	float m_fWeaponDisassemble;
 
 	// powerups

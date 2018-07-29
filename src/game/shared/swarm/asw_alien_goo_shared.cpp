@@ -29,7 +29,7 @@
 #include "tier0/memdbgon.h"
 
 #define ASW_GRUB_SAC_BURST_DISTANCE 180.0f
-#define ACID_BURN_INTERVAL 1.0f
+#define ACID_BURN_INTERVAL 0.5f
 #define ASW_ACID_DAMAGE 10.0f
 
 
@@ -51,7 +51,12 @@ BEGIN_NETWORK_TABLE( CASW_Alien_Goo, DT_ASW_Alien_Goo )
 END_NETWORK_TABLE()
 
 #ifdef GAME_DLL
+
+ConVar rd_biomass_ignite("rd_biomass_ignite", "0", FCVAR_CHEAT, "Ignites marine on biomass touch( 1=touch ).");
+ConVar rd_biomass_touch_damage( "rd_biomass_touch_damage", "10", FCVAR_CHEAT, "Sets damage caused by biomass on touch." );
+ConVar rd_biomass_touch_onfire("rd_biomass_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if biomass body on fire touch.");
 ConVar asw_goo_volume("asw_goo_volume", "1.0f", FCVAR_CHEAT, "Volume of the alien goo looping sound");
+
 extern ConVar rd_biomass_ignite_from_explosions;
 LINK_ENTITY_TO_CLASS( asw_alien_goo, CASW_Alien_Goo );
 PRECACHE_WEAPON_REGISTER(asw_alien_goo);
@@ -429,13 +434,20 @@ void CASW_Alien_Goo::BurningLinkThink()
 
 void CASW_Alien_Goo::GooAcidTouch(CBaseEntity* pOther)
 {
-	// if touched by a marine, acid burn him!
-	if (pOther && pOther->Classify() == CLASS_ASW_MARINE)
-	{
+  // custom biomass adjustment
+   BaseClass::StartTouch( pOther );
+   CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+   if ( pMarine )
+   {
 		if (m_fNextAcidBurnTime == 0 || gpGlobals->curtime > m_fNextAcidBurnTime)
 		{
 			m_fNextAcidBurnTime = gpGlobals->curtime + ACID_BURN_INTERVAL;
-			CTakeDamageInfo info( this, this, ASW_ACID_DAMAGE, DMG_ACID );
+            int iTouchDamage = rd_biomass_touch_damage.GetInt();
+            CTakeDamageInfo info( this, this, iTouchDamage, DMG_ACID ); //ASW_ACID_DAMAGE replaced by iTouchDamage
+            damageTypes = "on touch";
+
+		if (rd_biomass_ignite.GetInt() >= 1 || (m_bOnFire && rd_biomass_touch_onfire.GetBool()))
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 			
 			Vector	killDir = pOther->GetAbsOrigin() - GetAbsOrigin();
 			VectorNormalize( killDir );
