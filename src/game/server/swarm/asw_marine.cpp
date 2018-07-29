@@ -827,6 +827,7 @@ void CASW_Marine::Precache()
 	PrecacheModel("models/swarm/shouldercone/shouldercone.mdl");
 	PrecacheModel("models/swarm/shouldercone/lasersight.mdl");	
 	PrecacheModel( "cable/cable.vmt" );
+    PrecacheModel( "materials/effects/bluelaser2.vmt" );
 	PrecacheScriptSound( "ASW.MarineMeleeAttack" );
 	PrecacheScriptSound( "ASW.MarineMeleeAttackFP" );
 	PrecacheScriptSound( "ASW.MarinePowerFistAttack" );
@@ -1307,6 +1308,7 @@ void CASW_Marine::Event_Dying( void )
 	RemoveDeferred();
 }
 
+extern ConVar rd_marine_electrified_armor_scale;
 int CASW_Marine::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 {
 	// make marines immune to crush damage
@@ -1507,6 +1509,7 @@ int CASW_Marine::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 					WRITE_SHORT( entindex() );
 					WRITE_SHORT( pAlien->entindex() );
 					MessageEnd();
+					newInfo.ScaleDamage( rd_marine_electrified_armor_scale.GetFloat() );
 
 					int iDamageBefore = newInfo.GetDamage();
 					newInfo.ScaleDamage( 0.25f );

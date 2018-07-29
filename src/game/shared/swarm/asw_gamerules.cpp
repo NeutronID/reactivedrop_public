@@ -5856,12 +5856,13 @@ void CAlienSwarm::StumbleAliensInRadius( CBaseEntity *pInflictor, const Vector &
 	}
 }
 
+extern ConVar rd_electrified_armor_radius;
 void CAlienSwarm::ShockNearbyAliens( CASW_Marine *pMarine, CASW_Weapon *pWeaponSource )
 {
 	if ( !pMarine )
 		return;
 
-	const float flRadius = 160.0f;
+	const float flRadius = rd_electrified_armor_radius.GetFloat();
 	const float flRadiusSqr = flRadius * flRadius;
 
 	// debug stun radius

@@ -38,7 +38,8 @@ PRECACHE_WEAPON_REGISTER( asw_weapon_electrified_armor );
 #ifndef CLIENT_DLL
 
 ConVar asw_electrified_armor_duration( "asw_electrified_armor_duration", "12.0f", FCVAR_CHEAT, "Duration of electrified armor when activated" );
-
+ConVar rd_electrified_armor_radius("rd_electrified_armor_radius", "160.0", FCVAR_CHEAT, "Radius of the first shock when activating electrified armor.");
+ConVar rd_marine_electrified_armor_scale("rd_marine_electrified_armor_scale", "0.25", FCVAR_CHEAT, "Scales the amount of damage taken by marines if they are using electrified armor.");
 //---------------------------------------------------------
 // Save/Restore
 //---------------------------------------------------------
@@ -114,9 +115,20 @@ void CASW_Weapon_Electrified_Armor::PrimaryAttack( void )
 
 	m_flNextPrimaryAttack = gpGlobals->curtime + 4.0f;
 
+	if (!m_iClip1 && pMarine->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
+	{
+		// weapon is lost when all stims are gone
 #ifdef GAME_DLL
 	DestroyIfEmpty( true );
+		if (pMarine)
+		{
+			pMarine->Weapon_Detach(this);
+			if (bThisActive)
+				pMarine->SwitchToNextBestWeapon(NULL);
+		}
+		Kill();
 #endif
+	}
 }
 
 void CASW_Weapon_Electrified_Armor::Precache()
