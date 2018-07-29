@@ -72,6 +72,7 @@ ConVar asw_shieldbug_knockdown("asw_shieldbug_knockdown", "1", FCVAR_CHEAT, "If 
 ConVar asw_shieldbug_knockdown_force("asw_shieldbug_knockdown_force", "500", FCVAR_CHEAT, "Magnitude of knockdown force for shieldbug's melee attack");
 ConVar asw_shieldbug_knockdown_lift("asw_shieldbug_knockdown_lift", "300", FCVAR_CHEAT, "Upwards force for shieldbug's melee attack");
 ConVar rd_shieldbug_health( "rd_shieldbug_health", "1000", FCVAR_CHEAT, "Health of the shieldbug" );
+ConVar rd_shieldbug_ignite( "rd_shieldbug_ignite", "3.0f", FCVAR_CHEAT, "Duration ignite shieldbug" );
 
 extern ConVar sv_gravity;
 extern ConVar asw_debug_marine_chatter;
@@ -939,7 +940,7 @@ void CASW_Shieldbug::SetHealthByDifficultyLevel()
 
 void CASW_Shieldbug::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAttacker, CBaseEntity *pDamagingWeapon /*= NULL */ )
 {
-	BaseClass::ASW_Ignite(MIN(flFlameLifetime, 3.0f), flSize, pAttacker, pDamagingWeapon );
+	BaseClass::ASW_Ignite(MIN(flFlameLifetime, +rd_shieldbug_ignite.GetFloat(), flSize, pAttacker, pDamagingWeapon );
 }
 
 void CASW_Shieldbug::NPCThink()
