@@ -451,6 +451,7 @@ void CASW_MarineSpeech::InternalPlayChatter(CASW_Marine* pMarine, const char* sz
 	int iMaxChatter = pMarine->GetMarineProfile()->m_iChatterCount[iChatterType];
 	if (iMaxChatter <= 0)
 	{
+        if (asw_debug_marine_chatter.GetBool())
 		Msg("Warning, couldn't play chatter of type %d as no sub chatters of that type for this marine\n", iChatterType);
 		return;
 	}
