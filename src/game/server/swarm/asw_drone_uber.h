@@ -21,6 +21,9 @@ public:
 	virtual float GetIdealSpeed() const;
 	virtual int OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	virtual bool ModifyAutoMovement( Vector &vecNewPos );
+
+private:
+	float GetDamage();	//easy modification of alien damages.
 };
 
 #endif // _INCLUDED_ASW_DRONE_UBER_H
