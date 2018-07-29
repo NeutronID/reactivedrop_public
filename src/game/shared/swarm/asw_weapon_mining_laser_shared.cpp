@@ -41,6 +41,8 @@
 
 
 ConVar asw_mininglaser_damage_snd_interval("asw_mininglaser_damage_snd_interval", "1.0", FCVAR_CHEAT | FCVAR_REPLICATED, "How often to play the damage sound when the laser beam is on");
+ConVar rd_mininglaser_charge_time("rd_mininglaser_charge_time", "1.6", FCVAR_CHEAT, "How fast the mining laser reaches the charged state.");
+ConVar rd_mininglaser_infinite("rd_mininglaser_infinite", "0", FCVAR_CHEAT, "Prevents the mining laser from using ammo.");
 extern ConVar sk_plr_dmg_asw_ml;
 extern int	g_sModelIndexSmoke;			// (in combatweapon.cpp) holds the index for the smoke cloud
 
@@ -267,7 +269,7 @@ void CASW_Weapon_Mining_Laser::ClientThink()
 		}
 
 		if ( m_pLaserEffect )
-		{		
+		{
 			//m_pLaserEffect->SetControlPoint( 0, startPoint );
 			m_pLaserEffect->SetControlPoint( 1, tr.endpos );
 			QAngle	vecAngles;
@@ -395,7 +397,7 @@ void CASW_Weapon_Mining_Laser::PrimaryAttack( void )
 			m_bCutting = false;
 			m_bIsFiring = true;
 
-			if ( gpGlobals->curtime >= ( m_flStartFireTime + ASW_MINING_LASER_CHARGE_UP_TIME ) )
+			if ( gpGlobals->curtime >= ( m_flStartFireTime + rd_mininglaser_charge_time.GetFloat() ) )
 			{
 				m_bPlayingCuttingSound = false;	
 				StartRunSound();
@@ -512,7 +514,7 @@ bool CASW_Weapon_Mining_Laser::Fire( const Vector &vecOrigSrc, const Vector &vec
 			return false;
 
 		// uses 5 ammo/second
-		if ( gpGlobals->curtime >= m_flAmmoUseTime )
+		if ( gpGlobals->curtime >= m_flAmmoUseTime && !rd_mininglaser_infinite.GetBool())
 		{
 			// decrement ammo
 			m_iClip1 -= 1;
