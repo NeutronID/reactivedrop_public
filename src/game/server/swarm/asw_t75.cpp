@@ -26,7 +26,10 @@
 #include "tier0/memdbgon.h"
 
 #define ASW_T75_MODEL "models/swarmprops/miscdeco/bridgeexplosivesmesh.mdl"
-#define ASW_MINE_EXPLODE_TIME 0.6f
+#define ASW_MINE_EXPLODE_TIME 3.0f
+
+ConVar rd_t75_damage( "rd_t75_damage", "600.0f", FCVAR_CHEAT );
+ConVar rd_t75_radius( "rd_t75_radius", "300.0f", FCVAR_CHEAT );
 
 BEGIN_DATADESC( CASW_T75 )
 	//DEFINE_FUNCTION( TouchT75 ),
@@ -74,8 +77,8 @@ void CASW_T75::Spawn( void )
 		SetParent( tr.m_pEnt );
 	}
 
-	m_flDamage = 600.0f;
-	m_flDamageRadius = 250.0f;
+	m_flDamage = rd_t75_damage.GetFloat();
+	m_flDamageRadius = rd_t75_radius.GetFloat();
 
 	AddEffects( EF_NOSHADOW|EF_NORECEIVESHADOW );
 	SetTouch( &CASW_T75::TouchT75 );
@@ -197,7 +200,7 @@ void CASW_T75::ActivateUseIcon( CASW_Marine* pMarine, int nHoldType )
 	}
 }
 
-#define T75_ARM_TIME 3.0f
+#define T75_ARM_TIME 0.5f
 void CASW_T75::MarineUsing(CASW_Marine* pMarine, float deltatime)
 {
 	if ( m_bIsInUse && !m_bArmed.Get() && pMarine )
@@ -213,7 +216,7 @@ void CASW_T75::MarineUsing(CASW_Marine* pMarine, float deltatime)
 			pMarine->GetMarineSpeech()->Chatter(CHATTER_MINE_DEPLOYED);  // TODO: Chatter for T75 being armed
 
 			// set detonate time
-			m_iCountdown = 6;
+			m_iCountdown = 3;
 			SetThink( &CASW_T75::CountdownThink );
 			SetNextThink( gpGlobals->curtime + 0.1f );
 		}
