@@ -21,6 +21,9 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar rd_weapon_buff_grenade_radius( "rd_weapon_buff_grenade_radius", "120.0f", FCVAR_CHEAT );
+ConVar rd_weapon_buff_grenade_duration( "rd_weapon_buff_grenade_duration", "30.0f", FCVAR_CHEAT );
+
 #define ASW_FLARES_FASTEST_REFIRE_TIME		0.1f
 
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Weapon_Buff_Grenade, DT_ASW_Weapon_Buff_Grenade )
@@ -149,8 +152,8 @@ void CASW_Weapon_Buff_Grenade::PrimaryAttack( void )
 		newVel = vec3_origin;
 	}
 
-	float flRadius = 120.0f;
-	float flDuration = 30.0f;
+	float flRadius = rd_weapon_buff_grenade_radius.GetFloat();
+	float flDuration = rd_weapon_buff_grenade_duration.GetFloat();
 	CASW_BuffGrenade_Projectile *pBuff = CASW_BuffGrenade_Projectile::Grenade_Projectile_Create(vecSrc, ang, newVel, rotSpeed, pMarine, flRadius, flDuration);
 
 	pMarine->OnWeaponFired( this, 1 );
