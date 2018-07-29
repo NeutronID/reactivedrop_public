@@ -35,9 +35,15 @@ END_DATADESC()
 ConVar asw_boomer_health( "asw_boomer_health", "800", FCVAR_CHEAT );
 ConVar asw_boomer_inflate_speed( "asw_boomer_inflate_speed", "6.0f", FCVAR_CHEAT );
 ConVar asw_boomer_inflate_debug( "asw_boomer_inflate_debug", "1.0f", FCVAR_CHEAT );
-ConVar sk_asw_boomer_bomb_damage( "sk_asw_boomer_bomb_damage", "55", FCVAR_CHEAT );
-ConVar sk_asw_boomer_melee_damage_min( "sk_asw_boomer_melee_damage_min", "4", FCVAR_CHEAT );
-ConVar sk_asw_boomer_melee_damage_max( "sk_asw_boomer_melee_damage_max", "6", FCVAR_CHEAT );
+ConVar rd_boomer_bomb_range( "rd_boomer_bomb_range", "200", FCVAR_CHEAT, "Sets boomer explode range." );
+ConVar rd_boomer_max_projectile( "rd_boomer_max_projectile", "8", FCVAR_CHEAT, "Sets boomer max projectile." );
+ConVar rd_boomer_bomb_damage( "rd_boomer_bomb_damage", "55", FCVAR_CHEAT, "Sets boomer explode damage." );
+ConVar rd_boomer_bomb_radius( "rd_boomer_bomb_radius", "240", FCVAR_CHEAT, "Sets boomer explode radius." );
+ConVar rd_boomer_melee_range( "rd_boomer_melee_range", "140", FCVAR_CHEAT, "Sets boomer melee range." );
+ConVar rd_boomer_melee_min_damage( "rd_boomer_melee_min_damage", "4", FCVAR_CHEAT, "Sets boomer melee min damage." );
+ConVar rd_boomer_melee_max_damage( "rd_boomer_melee_max_damage", "6", FCVAR_CHEAT, "Sets boomer melee max damage." );
+ConVar rd_boomer_melee_force( "rd_boomer_melee_force", "4", FCVAR_CHEAT, "Sets boomer melee force." );
+ConVar rd_boomer_chase_distance( "rd_boomer_chase_distance", "600", FCVAR_CHEAT, "Sets boomer chase distance." );
 extern ConVar asw_alien_debug_death_style;
 
 extern ConVar asw_debug_alien_damage;
@@ -105,7 +111,7 @@ void CASW_Boomer::Precache( void )
 	PrecacheModel( "models/aliens/boomer/boomerLegC.mdl");
 	PrecacheScriptSound( "ASW_Boomer.Death_Explode" );
 	PrecacheScriptSound( "ASW_Boomer.Death_Gib" );
-	BaseClass::Precache();	
+	BaseClass::Precache();
 }
 
 
@@ -303,26 +309,26 @@ bool CASW_Boomer::CreateBehaviors()
 {
 	m_ExplodeBehavior.KeyValue( "schedule_chance", "40" );
 	m_ExplodeBehavior.KeyValue( "schedule_chance_rate", "1" );
-	m_ExplodeBehavior.KeyValue( "range", "200" );
-	m_ExplodeBehavior.KeyValue( "max_projectiles", "8" );
+	m_ExplodeBehavior.KeyValue( "range", rd_boomer_bomb_range.GetString() );
+	m_ExplodeBehavior.KeyValue( "max_projectiles",rd_boomer_max_projectile.GetString() );
 	m_ExplodeBehavior.KeyValue( "max_buildup_time", "3" );
 	m_ExplodeBehavior.KeyValue( "min_velocity", "150" );
 	m_ExplodeBehavior.KeyValue( "max_velocity", "450" );
 	m_ExplodeBehavior.KeyValue( "attach_name", "sack_" );
 	m_ExplodeBehavior.KeyValue( "attach_count", "12" );
-	m_ExplodeBehavior.KeyValue( "damage", sk_asw_boomer_bomb_damage.GetString() );
-	m_ExplodeBehavior.KeyValue( "radius", "240" );
+	m_ExplodeBehavior.KeyValue( "damage", rd_boomer_bomb_damage.GetString() );
+	m_ExplodeBehavior.KeyValue( "radius", rd_boomer_bomb_radius.GetString() );
 	AddBehavior( &m_ExplodeBehavior );
 	m_ExplodeBehavior.Init();
 
-	m_MeleeBehavior.KeyValue( "range", "140" );
-	m_MeleeBehavior.KeyValue( "min_damage", sk_asw_boomer_melee_damage_min.GetString() );
-	m_MeleeBehavior.KeyValue( "max_damage", sk_asw_boomer_melee_damage_max.GetString() );
-	m_MeleeBehavior.KeyValue( "force", "4" );
+	m_MeleeBehavior.KeyValue( "range", rd_boomer_melee_range.GetString() );
+	m_MeleeBehavior.KeyValue( "min_damage", rd_boomer_melee_min_damage.GetString() );
+	m_MeleeBehavior.KeyValue( "max_damage", rd_boomer_melee_max_damage.GetString() );
+	m_MeleeBehavior.KeyValue( "force", rd_boomer_melee_force.GetString() );
 	AddBehavior( &m_MeleeBehavior );
 	m_MeleeBehavior.Init();
 
-	m_ChaseEnemyBehavior.KeyValue( "chase_distance", "600" );
+	m_ChaseEnemyBehavior.KeyValue( "chase_distance", rd_boomer_chase_distance.GetString() );
 	AddBehavior( &m_ChaseEnemyBehavior );
 	m_ChaseEnemyBehavior.Init();
 
