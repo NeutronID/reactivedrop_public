@@ -33,6 +33,7 @@ public:
 	void SpawnEffects(int flags);
 	void ResetEgg();
 	
+	int m_iRespawns;	//Maximum egg respawns.
 	bool m_bOpen, m_bHatched, m_bOpening;
 	float m_fHatchTime, m_fEggResetTime;
 	string_t m_sParasiteClass;

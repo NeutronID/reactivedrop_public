@@ -30,10 +30,10 @@
 #define EGG_HATCH_ANIM "egg_pop"
 
 #define ASW_EGG_HATCH_DELAY 3.0f
-#define ASW_EGG_ALWAYS_BURST_DISTANCE 120.0f
+//#define ASW_EGG_ALWAYS_BURST_DISTANCE 120.0f
 #define ASW_EGG_BURST_DISTANCE_EASY 250.0f
-#define ASW_EGG_BURST_DISTANCE 450.0f
-#define ASW_EGG_RESET_DELAY 20.0f
+//#define ASW_EGG_BURST_DISTANCE 450.0f
+//#define ASW_EGG_RESET_DELAY 20.0f
 
 
 LINK_ENTITY_TO_CLASS( asw_egg, CASW_Egg );
@@ -81,7 +81,11 @@ BEGIN_DATADESC( CASW_Egg )
 END_DATADESC()
 
 ConVar asw_egg_respawn( "asw_egg_respawn", "0", FCVAR_CHEAT, "If set, eggs will respawn the parasite inside" );
-
+ConVar rd_egg_respawn_time("rd_egg_respawn_time", "20.0", FCVAR_CHEAT, "Sets how fast eggs will respawn parasites.");
+ConVar rd_egg_health("rd_egg_health", "50", FCVAR_CHEAT, "Sets the health of eggs.");
+ConVar rd_egg_always_burst_distance("rd_egg_always_burst_distance", "120.0", FCVAR_CHEAT, "*Always* burst if marines are this close.");
+ConVar rd_egg_burst_distance("rd_egg_burst_distance", "450.0", FCVAR_CHEAT, "Sometimes burst if a marine comes this close.");
+ConVar rd_egg_max_respawns("rd_egg_max_respawns", "0", FCVAR_CHEAT, "Maximum parasites for an egg to spawn. 0 = infinite.");		  
 float CASW_Egg::s_fNextSpottedChatterTime = 0;
 
 CASW_Egg::CASW_Egg()
@@ -119,7 +123,7 @@ void CASW_Egg::Spawn( void )
 	SetModel(EGG_MODEL);
 	ResetSequence( LookupSequence( EGG_CLOSED_ANIM ) );
 	SetPlaybackRate( RandomFloat( 0.95, 1.05 ) ); // Slightly randomize the playback rate so they don't all match
-	m_bStoredEggSize = false;	
+	m_bStoredEggSize = false;
 
 	BaseClass::Spawn();
 
@@ -154,7 +158,7 @@ void CASW_Egg::Spawn( void )
 	}
 
 	m_takedamage = DAMAGE_YES;
-	m_iHealth = 50;
+	m_iHealth = rd_egg_health.GetInt();
 	m_iMaxHealth = m_iHealth;
 	m_fNextMarineCheckTime = gpGlobals->curtime + random->RandomFloat(5.0f, 10.0f);
 
@@ -162,6 +166,7 @@ void CASW_Egg::Spawn( void )
 	{
 		ASWGameResource()->m_iStartingEggsInMap++;
 	}
+    m_iRespawns = 0;
 }
 
 bool CASW_Egg::CreateVPhysics()
@@ -271,7 +276,7 @@ void CASW_Egg::AnimThink( void )
 			else
 				s_fNextSpottedChatterTime = gpGlobals->curtime + 1.0f;		
 		}
-		float flOpenDist = ASW_EGG_BURST_DISTANCE;
+		float flOpenDist = rd_egg_burst_distance.GetFloat();
 		if ( ASWGameRules() && ASWGameRules()->GetSkillLevel() == 1 )
 		{
 			flOpenDist = ASW_EGG_BURST_DISTANCE_EASY;
@@ -279,11 +284,11 @@ void CASW_Egg::AnimThink( void )
 		if ( pMarine  )
 		{
 			//Msg( "Egg %d check.  Distance = %f\n", entindex(), marine_distance );
-			if ( marine_distance <= ASW_EGG_ALWAYS_BURST_DISTANCE )
+			if ( marine_distance <= rd_egg_always_burst_distance.GetFloat() )
 			{
 				Open(pMarine);
 			}
-			else if ( marine_distance <= ASW_EGG_BURST_DISTANCE && RandomFloat() < 0.1f )
+			else if ( marine_distance <= rd_egg_burst_distance.GetFloat() && RandomFloat() < 0.1f )
 			{
 				Open(pMarine);
 			}
@@ -367,6 +372,9 @@ void CASW_Egg::ResetEgg()
 	// reset the egg so it can open and hatch again
 	m_bOpen = false;
 	m_bHatched = false;
+	//Fixed parasite not hatching after egg respawned
+	m_bOpening = false;	
+	m_fEggResetTime = 0;
 	ResetSequence( LookupSequence( EGG_CLOSED_ANIM ) );
 	SetBodygroup( 1,0 );
 	SetPlaybackRate( RandomFloat( 0.95, 1.05 ) ); // Slightly randomize the playback rate so they don't all match
@@ -436,9 +444,10 @@ void  CASW_Egg::Hatch(CBaseEntity* pOther)
 			GetParasite()->Wake();
 		}
 
-		if ( asw_egg_respawn.GetBool() )
+		if ( asw_egg_respawn.GetBool() && (m_iRespawns < rd_egg_max_respawns.GetInt() || rd_egg_max_respawns.GetInt() == 0) )
 		{
-			m_fEggResetTime = gpGlobals->curtime + ASW_EGG_RESET_DELAY * random->RandomFloat(1.0f, 2.0f);
+			m_fEggResetTime = gpGlobals->curtime + rd_egg_respawn_time.GetFloat();
+			m_iRespawns++;
 		}
 	}
 }
