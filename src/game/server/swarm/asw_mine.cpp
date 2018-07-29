@@ -95,7 +95,7 @@ void CASW_Mine::Explode()
 	{
 		pFirewall->SetAbsAngles( GetAbsAngles() );
 		if (GetOwnerEntity())
-			Msg("Creating firewall with owner %s\n", GetOwnerEntity()->GetClassname());
+			DevMsg("Creating firewall with owner %s\n", GetOwnerEntity()->GetClassname());
 		pFirewall->SetOwnerEntity(GetOwnerEntity());
 		pFirewall->SetAbsOrigin( GetAbsOrigin() );			
 

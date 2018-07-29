@@ -260,12 +260,12 @@ void AddMultiDamage( const CTakeDamageInfo &info, CBaseEntity *pEntity )
 			{
 				if ( g_MultiDamage.GetDamageForce() == vec3_origin )
 				{
-					Warning( "AddMultiDamage:  g_MultiDamage.GetDamageForce() == vec3_origin\n" );
+					DevWarning( "AddMultiDamage:  g_MultiDamage.GetDamageForce() == vec3_origin\n" );
 				}
 
 				if ( g_MultiDamage.GetDamagePosition() == vec3_origin)
 				{
-					Warning( "AddMultiDamage:  g_MultiDamage.GetDamagePosition() == vec3_origin\n" );
+					DevWarning( "AddMultiDamage:  g_MultiDamage.GetDamagePosition() == vec3_origin\n" );
 				}
 			}
 		}

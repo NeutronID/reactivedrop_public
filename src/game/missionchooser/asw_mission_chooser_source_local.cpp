@@ -141,7 +141,7 @@ void CASW_Mission_Chooser_Source_Local::OnSaveUpdated(const char *szSaveName)
 			break;
 		}
 	}
-	Msg("Updating save game summary %s\n", szSaveName);
+	DvMsg("Updating save game summary %s\n", szSaveName);
 	AddToSavedCampaignList(szWithExtension);
 }
 
@@ -981,7 +981,7 @@ void CASW_Mission_Chooser_Source_Local::NotifyNewSave(const char *szSaveName)
 		if (!Q_strcmp(m_SavedCampaignList[i].m_szSaveName, szWithExtension))
 			return;
 	}
-	Msg("New save created, adding it to the list of saved campaigns: %s\n", szSaveName);
+	DevMsg("New save created, adding it to the list of saved campaigns: %s\n", szSaveName);
 	AddToSavedCampaignList(szWithExtension);
 }
 
@@ -1058,10 +1058,10 @@ bool CASW_Mission_Chooser_Source_Local::ASW_Campaign_CreateNewSaveGame(char *szF
 	char tempbuffer[256];
 	Q_snprintf(tempbuffer, sizeof(tempbuffer), "%s", szFileName);
 	const char *pszNoPathName = Q_UnqualifiedFileName(tempbuffer);
-	Msg("Unqualified = %s\n", pszNoPathName);
+	DevMsg("Unqualified = %s\n", pszNoPathName);
 	char szFullFileName[256];
 	Q_snprintf(szFullFileName, sizeof(szFullFileName), "save/%s", pszNoPathName);
-	Msg("Creating new save with filename: %s\n", szFullFileName);
+	DevMsg("Creating new save with filename: %s\n", szFullFileName);
 
 	KeyValues *pSaveKeyValues = new KeyValues( pszNoPathName );
 
@@ -1148,7 +1148,7 @@ bool CASW_Mission_Chooser_Source_Local::ASW_Campaign_CreateNewSaveGame(char *szF
 	if (pSaveKeyValues->SaveToFile(g_pFullFileSystem, szFullFileName))
 	{
 		// make sure our save summary list adds this to it, if needed
-		Msg("New save created: %s\n", szFullFileName);
+		DevMsg("New save created: %s\n", szFullFileName);
 		NotifyNewSave(pszNoPathName);
 		return true;
 	}

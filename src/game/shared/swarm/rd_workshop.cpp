@@ -965,7 +965,7 @@ static void UpdateAndLoadAddon( PublishedFileId_t id, bool bHighPriority, bool b
 	uint32 iState = pWorkshop->GetItemState( id );
 	if ( ( iState & k_EItemStateInstalled ) && !( iState & k_EItemStateNeedsUpdate ) )
 	{
-		Msg( "Addon %llu is installed and does not need an update.\n", id );
+		DevMsg( "Addon %llu is installed and does not need an update.\n", id );
 		LoadAddon( id, false );
 		return;
 	}
@@ -1015,7 +1015,7 @@ static void RealLoadAddon( PublishedFileId_t id )
 	char vpkname[MAX_PATH];
 	Q_ComposeFileName( szFolderName, "addon.vpk", vpkname, sizeof( vpkname ) );
 
-	Msg( "Loading addon %llu\n", id );
+	DevMsg( "Loading addon %llu\n", id );
 
 	bool bDontClearCache = false;
 

@@ -3303,7 +3303,7 @@ void CASW_Alien::LookupBurrowActivities()
 		m_UnburrowActivity = (Activity) LookupActivity( STRING( m_iszUnburrowActivityName ) );
 		if ( m_UnburrowActivity == ACT_INVALID )
 		{
-			Warning( "Unknown unburrow activity %s", STRING( m_iszUnburrowActivityName ) );
+			DevWarning( "Unknown unburrow activity %s", STRING( m_iszUnburrowActivityName ) );
 			if ( m_hSpawner.Get() )
 			{
 				Warning( "  Spawner is: %d %s at %f %f %f\n", m_hSpawner->entindex(), m_hSpawner->GetDebugName(), VectorExpand( m_hSpawner->GetAbsOrigin() ) );
