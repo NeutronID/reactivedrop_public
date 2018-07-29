@@ -29,6 +29,8 @@ public:
 	virtual void		Spawn();
 	virtual void		Precache();
 
+	virtual float		GetIdealSpeed() const;
+
 	virtual void		SetHealthByDifficultyLevel();
 
 	virtual float		MaxYawSpeed( void );
