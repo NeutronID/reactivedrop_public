@@ -20,6 +20,7 @@ extern ConVar sk_npc_dmg_asw_flares;
 	//"models/weapons/flare.mdl"
 #define ASW_FLARE_LIFETIME 30.0f
 
+ConVar rd_flare_lifetime( "rd_flare_lifetime", "30.0f", FCVAR_CHEAT );
 LINK_ENTITY_TO_CLASS( asw_flare_projectile, CASW_Flare_Projectile );
 
 BEGIN_DATADESC( CASW_Flare_Projectile )
@@ -176,7 +177,7 @@ void CASW_Flare_Projectile::Spawn( void )
 
 	if ( ASW_FLARE_LIFETIME > 0 )
 	{
-		m_flTimeBurnOut = gpGlobals->curtime + ASW_FLARE_LIFETIME;
+		m_flTimeBurnOut = gpGlobals->curtime + rd_flare_lifetime.GetFloat();
 	}
 	else
 	{
