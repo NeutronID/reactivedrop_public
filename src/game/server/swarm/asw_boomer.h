@@ -43,6 +43,10 @@ public:
 	virtual bool		CorpseGib( const CTakeDamageInfo &info );
 	virtual bool		CanBreak() { return true; };
 
+	virtual void 		StartTouch( CBaseEntity *pOther );
+	float				m_fLastTouchHurtTime;
+	const char			*alienLabel, *damageTypes;
+    void 				MeleeAttack(float distance, float damage);
 	// sounds
 	virtual void DeathSound( const CTakeDamageInfo &info );
 
