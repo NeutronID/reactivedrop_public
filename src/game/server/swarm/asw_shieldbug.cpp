@@ -74,6 +74,8 @@ ConVar asw_shieldbug_knockdown_lift("asw_shieldbug_knockdown_lift", "300", FCVAR
 ConVar rd_shieldbug_health( "rd_shieldbug_health", "1000", FCVAR_CHEAT, "Health of the shieldbug" );
 ConVar rd_shieldbug_ignite( "rd_shieldbug_ignite", "3.0f", FCVAR_CHEAT, "Duration ignite shieldbug" );
 
+ConVar rd_shieldbug_touch_damage("rd_shieldbug_touch_damage", "0", FCVAR_CHEAT, "Sets damage caused by shieldbug on touch.");
+ConVar rd_shieldbug_touch_onfire("rd_shieldbug_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if shieldbug body on fire touch.");
 extern ConVar sv_gravity;
 extern ConVar asw_debug_marine_chatter;
 extern ConVar rd_deagle_bigalien_dmg_scale;
@@ -878,6 +880,30 @@ int CASW_Shieldbug::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	return result;
 }
 
+void CASW_Shieldbug::StartTouch( CBaseEntity *pOther )
+{
+	BaseClass::StartTouch( pOther );
+
+	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+	if ( pMarine )
+	{
+		int iTouchDamage = rd_shieldbug_touch_damage.GetInt();
+		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+		damageTypes = "on touch";
+
+		if (m_bOnFire && rd_shieldbug_touch_onfire.GetBool());
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+
+		if ( m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <=0 )	//don't hurt him if he was hurt recently
+			return;
+
+		Vector vecForceDir = ( pMarine->GetAbsOrigin() - GetAbsOrigin() );	// hurt the marine
+		CalculateMeleeDamageForce( &info, vecForceDir, pMarine->GetAbsOrigin() );
+		pMarine->TakeDamage( info );
+
+		m_fLastTouchHurtTime = gpGlobals->curtime;
+	}
+}
 bool CASW_Shieldbug::ShouldGib( const CTakeDamageInfo &info )
 {
 	// don't gib if we burnt to death

@@ -48,6 +48,7 @@ ConVar asw_mortarbug_face_target("asw_mortarbug_face_target", "1", FCVAR_CHEAT, 
 ConVar rd_mortarbug_health( "rd_mortarbug_health", "350", FCVAR_CHEAT, "Health of the mortarbug" );
 
 ConVar rd_mortarbug_spit_rate("rd_mortarbug_spit_rate", "3.0", FCVAR_CHEAT, "Sets the firing rate for mortarbug.");
+ConVar rd_mortarbug_touch_onfire("rd_mortarbug_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if mortarbug body on fire touch.");
 extern ConVar rd_deagle_bigalien_dmg_scale;
 
 extern ConVar sv_gravity;
@@ -459,6 +460,8 @@ void CASW_Mortarbug::StartTouch( CBaseEntity *pOther )
 		// hurt the marine
 		Vector vecForceDir = (pMarine->GetAbsOrigin() - GetAbsOrigin());
 		CTakeDamageInfo info( this, this, asw_mortarbug_touch_damage.GetInt(), DMG_SLASH );
+		if (m_bOnFire && rd_mortarbug_touch_onfire.GetBool() )
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 		CalculateMeleeDamageForce( &info, vecForceDir, pMarine->GetAbsOrigin() );
 		pMarine->TakeDamage( info );
 		m_fLastTouchHurtTime = gpGlobals->curtime;

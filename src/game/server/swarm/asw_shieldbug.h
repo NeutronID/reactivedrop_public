@@ -31,7 +31,7 @@ public:
 	int MeleeAttack2Conditions ( float flDot, float flDist );
 	void MeleeAttack( float distance, float damage, QAngle &viewPunch, Vector &shove );
 	float MaxYawSpeed( void );
-	void HandleAnimEvent( animevent_t *pEvent );	
+	void HandleAnimEvent( animevent_t *pEvent );
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_SHIELDBUG; }	
 	bool CorpseGib( const CTakeDamageInfo &info );
 	void BuildScheduleTestBits( void );
@@ -93,6 +93,10 @@ public:
 	};
 
 	bool m_bHasBeenHurt;
+
+	virtual void	StartTouch( CBaseEntity *pOther );
+	float			m_fLastTouchHurtTime;
+	const char		*alienLabel, *damageTypes;
 
 protected:
 	DEFINE_CUSTOM_AI;

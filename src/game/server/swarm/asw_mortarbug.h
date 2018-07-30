@@ -20,6 +20,7 @@ public:
 	CASW_Mortarbug( void );
 	virtual ~CASW_Mortarbug( void );
 
+	const char			*alienLabel, *damageTypes;
 	void Spawn();
 	void Precache();
 	float GetIdealSpeed() const;
