@@ -44,7 +44,7 @@ ConVarRef *s_vcollide_wireframe = NULL;
 
 CStatueProp::CStatueProp( void )
 {
-	static ConVarRef vcollide_wireframe( "vcollide_wireframe" );
+    static ConVarRef vcollide_wireframe( "vcollide_wireframe", FCVAR_CHEAT );
 	s_vcollide_wireframe = &vcollide_wireframe;
 	m_pInitOBBs = NULL;
 }
