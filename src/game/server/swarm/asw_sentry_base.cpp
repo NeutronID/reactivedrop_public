@@ -528,8 +528,8 @@ int CASW_Sentry_Base::ScriptGetMaxAmmo()
 /// This must exactly match the enum CASW_Sentry_Base::GunType_t
 const CASW_Sentry_Base::SentryGunTypeInfo_t CASW_Sentry_Base::sm_gunTypeToInfo[CASW_Sentry_Base::kGUNTYPE_MAX] =
 {
-	SentryGunTypeInfo_t("asw_sentry_top_machinegun", "asw_weapon_sentry", 450), // kAUTOGUN
-	SentryGunTypeInfo_t("asw_sentry_top_cannon", "asw_weapon_sentry_cannon",	  25), // kCANNON
-	SentryGunTypeInfo_t("asw_sentry_top_flamer", "asw_weapon_sentry_flamer",  800), // kFLAME (ammo is stored as milliseconds of fire)
-	SentryGunTypeInfo_t("asw_sentry_top_icer", "asw_weapon_sentry_freeze",    800), // kICE
+	SentryGunTypeInfo_t("asw_sentry_top_machinegun", "asw_weapon_sentry", 5000 ),
+	SentryGunTypeInfo_t("asw_sentry_top_cannon", "asw_weapon_sentry_cannon", 2500 ),
+	SentryGunTypeInfo_t("asw_sentry_top_flamer", "asw_weapon_sentry_flamer", 5000 ),
+	SentryGunTypeInfo_t("asw_sentry_top_icer", "asw_weapon_sentry_freeze", 5000 ),
 };
