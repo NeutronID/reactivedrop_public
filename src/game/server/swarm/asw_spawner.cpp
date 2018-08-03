@@ -104,9 +104,10 @@ void CASW_Spawner::Spawn()
 	SetSolid( SOLID_NONE );
 	m_nCurrentLiveAliens = 0;
 
-	// trigger any begin state stuff
 	if (rd_spawner_impossimode.GetBool())
 		m_bInfiniteAliens = true;
+
+	// trigger any begin state stuff
 	SetSpawnerState(m_SpawnerState);
 }
 
@@ -162,7 +163,7 @@ bool CASW_Spawner::CanSpawn( const Vector &vecHullMins, const Vector &vecHullMax
 	if ( !asw_spawning_enabled.GetBool() )
 		return false;
 
-	// too many alive already?
+	//over 1900 edicts?
 	if (gEntList.NumberOfEdicts() > 1900)
 	{
 		if (rd_cc_debug_spawners.GetBool())
@@ -172,6 +173,7 @@ bool CASW_Spawner::CanSpawn( const Vector &vecHullMins, const Vector &vecHullMax
 		return false;
     }
 
+	// too many alive already?
 	if (m_nMaxLiveAliens>0 && m_nCurrentLiveAliens>=m_nMaxLiveAliens)
 	{
 		if (rd_cc_debug_spawners.GetInt() == 3)
@@ -245,6 +247,7 @@ void CASW_Spawner::MissionStart()
 			Msg("  removed infinite and set num aliens to %d\n", m_nNumAliens);
 	}
 
+	//Better asw_carnage
 	m_nNumAliens = m_nSetNumAliens;
 	m_nMaxLiveAliens = m_nSetMaxLiveAliens;
 
