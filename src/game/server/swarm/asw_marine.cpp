@@ -437,6 +437,7 @@ ConVar asw_movement_direction_tolerance( "asw_movement_direction_tolerance", "30
 ConVar asw_movement_direction_interval( "asw_movement_direction_interval", "0.5", FCVAR_CHEAT );
 extern ConVar rd_allow_revive;
 extern ConVar rd_revive_health;
+ConVar rd_marine_ff_immune("rd_marine_ff_immune", "1", FCVAR_CHEAT, "while airborne: 0: disabled, 1: immune to others ff, 2: immune to all ff");
 
 float CASW_Marine::s_fNextMadFiringChatter = 0;
 float CASW_Marine::s_fNextIdleChatterTime = 0;
@@ -1316,7 +1317,33 @@ int CASW_Marine::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		return 0;
 	}
-	
+
+	//Players won't take damage from friendly fire or ranger fire while in the air.
+	if (info.GetAttacker() && GetGroundEntity() == NULL && rd_marine_ff_immune.GetInt() > 0)
+	{
+		if (info.GetAttacker()->Classify() == CLASS_ASW_MARINE)
+		{
+			if (rd_marine_ff_immune.GetInt() == 2 && info.GetAttacker() == this)
+			{
+				if ( asw_debug_marine_damage.GetBool() )
+					Msg( "Ignored damage from self; marine is airborne.\n" );
+				return 0;
+			}
+			else if (info.GetAttacker() != this)
+			{
+				if ( asw_debug_marine_damage.GetBool() )
+					Msg( "Ignored damage from teammate; marine is airborne.\n" );
+				return 0;
+			}
+		}
+		else if (info.GetAttacker()->Classify() == CLASS_ASW_RANGER)
+		{
+			if ( asw_debug_marine_damage.GetBool() )
+				Msg( "Ignored damage from ranger; marine is airborne.\n" );
+			return 0;
+		}
+	}
+
 	// riflemod: knocked out marines doesn't take damage 
 	if (m_bKnockedOut)
 		return 0;
@@ -4761,6 +4788,10 @@ void CASW_Marine::Extinguish()
 bool CASW_Marine::AllowedToIgnite( void ) 
 { 
 	if ( m_iJumpJetting.Get() != 0 )
+		return false;
+
+	//players won't get onfire from firewall while jumping if rd_marine_ff_immune is enabled
+	if (GetGroundEntity() == NULL && rd_marine_ff_immune.GetInt() > 0)
 		return false;
 
 	float flBurnTime = ( asw_marine_ff_absorption.GetInt() > 0 ) ? asw_marine_time_until_ignite.GetFloat() : 0.2f;
