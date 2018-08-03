@@ -15,6 +15,7 @@
 #ifndef CLIENT_DLL
 	extern ConVar asw_visrange_generic;
 #endif
+ConVar rd_prop_laserable_health("rd_prop_laserable_health", "100", FCVAR_CHEAT, "Sets the health of laserable props (rocks in timor etc)");
 
 // This is a physics prop that can only be damaged effectively with the mining laser
 // (used for the rocks in Timor Station)
@@ -55,6 +56,7 @@ void CASW_Prop_Laserable::Spawn()
 	memset( m_iszBreakEffect.GetForModify(), 0, sizeof( m_iszBreakEffect ) );
 	memset( m_iszBreakSound.GetForModify(), 0, sizeof( m_iszBreakSound ) );
 	Precache();
+	this->SetHealth(rd_prop_laserable_health.GetInt());
 
 	VisibilityMonitor_AddEntity( this, asw_visrange_generic.GetFloat() * 0.9f, NULL, NULL );
 }
@@ -99,7 +101,12 @@ int CASW_Prop_Laserable::OnTakeDamage(const CTakeDamageInfo &info)
 	// reduce damage of everything except energy beam (mining laser) damage
 	if (newInfo.GetDamageType() & DMG_CLUB)
 	{
-		return 0;
+		//Allow marine melee to damage the physics prop(rocks)
+		CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());
+		if (pMarine)
+			newInfo.ScaleDamage(0.1f);
+		else
+			return 0;
 	}
 	else if (newInfo.GetDamageType() & DMG_BUCKSHOT)
 	{
