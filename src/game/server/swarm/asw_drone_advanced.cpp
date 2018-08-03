@@ -38,25 +38,20 @@
 ConVar asw_drone_melee_range("asw_drone_melee_range", "60.0", FCVAR_CHEAT, "Range of the drone's melee attack");
 ConVar asw_drone_start_melee_range("asw_drone_start_melee_range", "100.0", FCVAR_CHEAT, "Range at which the drone starts his melee attack");
 
+ConVar rd_drone_touch_ignite("rd_drone_touch_ignite", "0", FCVAR_CHEAT, "Ignites marine on touch(1=drone, 2=jumper, 3=All).");
+ConVar rd_drone_melee_ignite("rd_drone_melee_ignite", "0", FCVAR_CHEAT, "Ignites marine on melee(1=drone, 2=jumper, 3=All).");
+ConVar rd_drone_touch_onfire("rd_drone_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if drone body on fire touch.");
+
 #define ASW_DRONE_MELEE1_START_ATTACK_RANGE asw_drone_start_melee_range.GetFloat()
 #define ASW_DRONE_MELEE1_RANGE asw_drone_melee_range.GetFloat()
 
 extern ConVar ai_sequence_debug;
-
-//todo: 10 seems quite low, given the time delay between swings
-//  should do this damage when bumping (maybe a bit less?) and extra damage on each of the 3 swipes of the anim
 ConVar sk_asw_drone_damage( "sk_asw_drone_damage", "15.0", FCVAR_CHEAT, "Damage per swipe from the Drone");
 ConVar asw_drone_speedboost( "asw_drone_speedboost", "1.0",FCVAR_CHEAT , "boost speed for the alien drones" );
-// 0.32 is speedboost equal to movement when movement speedboost is 1.0
 ConVar asw_drone_override_speedboost( "asw_drone_override_speedboost", "0.32",FCVAR_CHEAT , "boost speed for the alien drones when in override mode" );
-// note: UNUSED - drone doesn't do automovement during melee, he does override move
 ConVar asw_drone_auto_speed_scale("asw_drone_auto_speed_scale", "0.5", FCVAR_CHEAT, "Speed scale for the drones while melee attacking");
 ConVar asw_drone_health("asw_drone_health", "40", FCVAR_CHEAT, "How much health the Swarm drones have");
-
-// these settings make the drones quite undodgeable and more lethal
-//ConVar asw_drone_yaw_speed("asw_drone_yaw_speed", "32.0", FCVAR_CHEAT, "How fast the swarm drone can turn");
-//ConVar asw_drone_yaw_speed_attacking("asw_drone_yaw_speed_attacking", "16.0", FCVAR_CHEAT, "How fast the swarm drone can turn while doing a melee attack");
-// these settings mean you can dodge aside when a drone starts attacking - makes for better gameplay?
+ConVar rd_drone_jumper_health("rd_drone_jumper_health", "50", FCVAR_CHEAT, "Base health for drone jumpers.");
 ConVar asw_drone_yaw_speed("asw_drone_yaw_speed", "32.0", FCVAR_CHEAT, "How fast the swarm drone can turn");
 ConVar asw_drone_yaw_speed_attackprep("asw_drone_yaw_speed_attackprep", "64.0", FCVAR_CHEAT, "How fast the swarm drone can turn while starting his melee attack");
 ConVar asw_drone_yaw_speed_attacking("asw_drone_yaw_speed_attacking", "8.0", FCVAR_CHEAT, "How fast the swarm drone can turn while doing a melee attack");
@@ -124,7 +119,6 @@ CASW_Drone_Movement *g_pDroneMovement = &g_DroneGameMovement;
 
 CASW_Drone_Advanced::CASW_Drone_Advanced( void )
 	: m_DurationDoorBash( 2)
-	   // : CASW_Alien()
 {
 	g_DroneList.AddToTail(this);
 	if ( asw_new_drone.GetBool() )
@@ -138,7 +132,6 @@ CASW_Drone_Advanced::CASW_Drone_Advanced( void )
 	m_flNextSmallFlinchTime = 0.0f;
 	m_nAlienCollisionGroup = ASW_COLLISION_GROUP_ALIEN;
 	m_iDeadBodyGroup = 2;
-	//m_debugOverlays |= (OVERLAY_TEXT_BIT | OVERLAY_BBOX_BIT); 
 }
 
 CASW_Drone_Advanced::~CASW_Drone_Advanced()
@@ -215,10 +208,7 @@ void CASW_Drone_Advanced::Spawn( void )
 
 	SetHullType(HULL_MEDIUMBIG);
 
-	//SetCollisionBounds(Vector(-26,-26,0), Vector(26,26,72));
 	UTIL_SetSize(this, Vector(-17,-17,0), Vector(17,17,69));
-
-	//UseClientSideAnimation();	
 		
 	SetHealthByDifficultyLevel();	
 	
@@ -251,7 +241,10 @@ void CASW_Drone_Advanced::Precache( void )
 	PrecacheModel( "models/aliens/drone/ragdoll_leg_r.mdl" );
 	PrecacheModel( "models/aliens/drone/ragdoll_leg.mdl" );
 	PrecacheModel( "models/aliens/drone/gib_torso.mdl" );
-	
+
+	//Fix late precache
+	PrecacheModel( SWARM_DRONE_MODEL );
+
 	BaseClass::Precache();
 }
 
@@ -813,6 +806,11 @@ int CASW_Drone_Advanced::MeleeAttack2Conditions( float flDot, float flDist )
 	return 0;
 }
 
+float CASW_Drone_Advanced::GetDamage()	//Easy customizing of alien damages.
+{
+	return sk_asw_drone_damage.GetFloat();
+}
+
 void CASW_Drone_Advanced::HandleAnimEvent( animevent_t *pEvent )
 {
 	int nEvent = pEvent->Event();
@@ -896,6 +894,21 @@ void CASW_Drone_Advanced::StartTouch( CBaseEntity *pOther )
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 	if (pMarine && !pMarine->m_bKnockedOut)
 	{
+		//ignite marine by drone/jumper on touch/on fire touch, 1=drone, 2=jumper, 3=All.
+		int iDroneIgnite = rd_drone_touch_ignite.GetInt();
+		bool bDroneOnFire = rd_drone_touch_onfire.GetBool();
+		if ( iDroneIgnite > 0 || bDroneOnFire )
+		{
+			CTakeDamageInfo info( this, this, 0, DMG_SLASH );
+			damageTypes = "on touch";
+			bool bDroneIsOnFire = (m_bOnFire && bDroneOnFire);
+
+			if ((iDroneIgnite >=2 || bDroneIsOnFire) && m_bJumper)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+
+			if (((iDroneIgnite==1 || iDroneIgnite==3) || bDroneIsOnFire) && !m_bJumper)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+         }
 		int iTouchDamage = asw_drone_touch_damage.GetInt();
 		if (GetActivity() == ACT_CLIMB_UP || GetActivity() == ACT_CLIMB_DISMOUNT)
 		{
@@ -2359,6 +2372,12 @@ void CASW_Drone_Advanced::SetHealthByDifficultyLevel()
 		Msg("Setting drone's initial health to %d\n", iHealth + m_iHealthBonus);
 	SetHealth(iHealth + m_iHealthBonus);
 	SetMaxHealth(iHealth + m_iHealthBonus);
+	if (FClassnameIs(this, "asw_drone_jumper"))
+	{
+		iHealth = ASWGameRules()->ModifyAlienHealthBySkillLevel(rd_drone_jumper_health.GetInt());
+	SetHealth(iHealth + m_iHealthBonus);
+	SetMaxHealth(iHealth + m_iHealthBonus);
+    }
 	SetHitboxSet(0);
 }
 

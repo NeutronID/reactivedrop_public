@@ -28,7 +28,7 @@ BEGIN_DATADESC( CASW_Ranger )
 DEFINE_EMBEDDEDBYREF( m_pExpresser ),
 END_DATADESC()
 
-ConVar asw_ranger_health( "asw_ranger_health", "101.5", FCVAR_CHEAT );
+ConVar asw_ranger_health( "asw_ranger_health", "100", FCVAR_CHEAT );
 ConVar asw_ranger_damage( "asw_ranger_damage", "12", FCVAR_CHEAT );
 ConVar asw_ranger_damage_splash( "asw_ranger_damage_splash", "0", FCVAR_CHEAT );
 
@@ -36,6 +36,8 @@ ConVar rd_ranger_speedboost( "rd_ranger_speedboost", "1.0", FCVAR_CHEAT, "Sets t
 ConVar rd_ranger_spit_rate("rd_ranger_spit_rate", "4.0", FCVAR_CHEAT, "Sets the firing rate for rangers.");
 ConVar rd_ranger_fuse("rd_ranger_fuse", "5.0", FCVAR_CHEAT, "Sets the maximum lifetime for ranger projectiles.");
 ConVar rd_ranger_spit_speed("rd_ranger_spit_speed", "425", FCVAR_CHEAT, "Sets the speed of ranger projectiles.");
+ConVar rd_ranger_touch_ignite("rd_ranger_touch_ignite", "0", FCVAR_CHEAT, "Ignites marine on ranger touch.");
+ConVar rd_ranger_touch_onfire("rd_ranger_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if ranger body on fire touch.");
 extern ConVar asw_debug_alien_damage;
 
 extern int AE_MORTARBUG_LAUNCH;		// actual launch of the projectile
@@ -333,6 +335,18 @@ void CASW_Ranger::Event_Killed( const CTakeDamageInfo &info )
 	BaseClass::Event_Killed( newInfo );
 }
 
+//ignite marine on touch/on fire touch fucntion
+void CASW_Ranger::StartTouch( CBaseEntity *pOther )
+{
+	BaseClass::StartTouch( pOther );
+	if ( rd_ranger_touch_ignite.GetBool() || (m_bOnFire && rd_ranger_touch_onfire.GetBool()) )
+	{
+		CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+		CTakeDamageInfo info( this, this, 0, DMG_SLASH );
+		if (pMarine)
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, "on touch");
+	}
+}
 
 //-----------------------------------------------------------------------------
 // Purpose:	

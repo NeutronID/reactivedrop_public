@@ -135,6 +135,7 @@ public:
 		NEXT_CONDITION,
 	};
 
+	const char		*alienLabel, *damageTypes;
 private:
 	CHandle< CASW_Door > m_hBlockingDoor;
 	float				 m_flDoorBashYaw;
@@ -151,6 +152,7 @@ private:
 	Vector m_vecEnemyStandoffPosition;
 
 	DEFINE_CUSTOM_AI;	
+	float GetDamage();	//allow easy damage modifications.
 };
 
 enum

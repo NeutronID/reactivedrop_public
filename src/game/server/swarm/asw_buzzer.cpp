@@ -43,7 +43,9 @@
 #include "asw_director.h"
 #include "asw_weapon.h"
 #include "asw_game_resource.h"
+#include "asw_radiation_volume.h"
 #include "asw_spawn_manager.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -86,6 +88,9 @@ ConVar	sk_asw_buzzer_melee_interval( "sk_asw_buzzer_melee_interval", "1.5", FCVA
 ConVar  asw_buzzer_poison_duration("asw_buzzer_poison_duration", "0.6f", FCVAR_CHEAT, "Base buzzer poison blur duration. This scales up to double the value based on mission difficulty.");
 ConVar  rd_buzzer_beta_health( "rd_buzzer_beta_health","120", FCVAR_CHEAT, "Health of the beta buzzer");
 ConVar  rd_old_buzzer( "rd_old_buzzer","0", FCVAR_CHEAT, "0 = buzzer, 1 = beta buzzer, 2 = random all.");
+ConVar rd_buzzer_radiation_leak_enable( "rd_buzzer_radiation_leak_enable","0", FCVAR_CHEAT, "Enables buzzers leak radiation gas cloud.");
+ConVar rd_buzzer_melee_ignite("rd_buzzer_melee_ignite", "0", FCVAR_CHEAT, "Ignites marine by buzzer melee(1=buzzer, 2=beta buzzer, 3=All).");
+ConVar rd_buzzer_touch_onfire("rd_buzzer_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if buzzer body on fire touch.");
 
 extern ConVar showhitlocation;
 extern ConVar asw_debug_alien_damage;
@@ -121,7 +126,6 @@ envelopePoint_t envDefaultBuzzerMoanVolumeFast[] =
 	},
 };
 
-
 //-----------------------------------------------------------------------------
 // Manhack schedules.
 //-----------------------------------------------------------------------------
@@ -134,7 +138,6 @@ enum BuzzerSchedules
 	SCHED_ASW_BUZZER_SWARM_FAILURE,
 	SCHED_ASW_BUZZER_ORDER_MOVE,
 };
-
 
 //-----------------------------------------------------------------------------
 // Manhack tasks.
@@ -204,7 +207,7 @@ BEGIN_DATADESC( CASW_Buzzer )
 	DEFINE_FIELD(m_flElectroStunSlowMoveTime, FIELD_TIME),
 	DEFINE_FIELD(m_bElectroStunned, FIELD_BOOLEAN),
 	DEFINE_FIELD( m_bHoldoutAlien, FIELD_BOOLEAN ),
-
+	DEFINE_FIELD( m_fLastTouchHurtTime, FIELD_TIME ),
 	DEFINE_KEYFIELD( m_bFlammable, FIELD_BOOLEAN, "flammable" ),
     DEFINE_KEYFIELD( m_bTeslable, FIELD_BOOLEAN, "teslable" ),
     DEFINE_KEYFIELD( m_bFreezable, FIELD_BOOLEAN, "freezable" ),
@@ -257,6 +260,7 @@ CASW_Buzzer::CASW_Buzzer()
 	m_flLastDamageTime = 0;
 	m_bFlammable = true;
 	m_bTeslable = true;
+	m_fLastTouchHurtTime = 0;
 	m_bFreezable = true;
 	m_bFlinchable = true;
 	m_iHealthBonus = 0;
@@ -643,7 +647,6 @@ void CASW_Buzzer::TakeDamageFromVehicle( int index, gamevcollisionevent_t *pEven
 	TakeDamage( dmgInfo );
 }
 
-
 //-----------------------------------------------------------------------------
 // Take damage from combine ball
 //-----------------------------------------------------------------------------
@@ -672,7 +675,6 @@ void CASW_Buzzer::TakeDamageFromPhysicsImpact( int index, gamevcollisionevent_t 
 	PhysCallbackDamage( this, CTakeDamageInfo( pHitEntity, pHitEntity, damageForce, damagePos, damage, damageType ), *pEvent, index );
 }
 
-
 #define ASW_BUZZER_SMASH_TIME	0.35		// How long after being thrown from a physcannon that a buzzer is eligible to die from impact
 void CASW_Buzzer::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 {
@@ -696,7 +698,6 @@ void CASW_Buzzer::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 		StopBurst( true );
 	}
 }
-
 
 void CASW_Buzzer::VPhysicsShadowCollision( int index, gamevcollisionevent_t *pEvent )
 {
@@ -733,13 +734,11 @@ int	CASW_Buzzer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 			}
 		}
 	}
-	
-	
+
 	m_flWingFlapSpeed = 20.0;
 
 	Vector vecDamageDir = tdInfo.GetDamageForce();
 	VectorNormalize( vecDamageDir );
-
 
 	// no being knocked back by shots
 	m_vForceVelocity = vec3_origin;	//vecDamageDir * info.GetDamage() * 20.0f;
@@ -781,7 +780,52 @@ int	CASW_Buzzer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	// Notify gamestats of the damage
 	CASW_GameStats.Event_AlienTookDamage( this, info );
 
+	//release radiation gas leak,	only beta buzzer to this
+	if (rd_buzzer_radiation_leak_enable.GetBool() && bOldBuzzer)
+		DoRadiationLeak(info);
+
 	return nRetVal;
+}
+
+void CASW_Buzzer::StartRadLoopSound()	//add radloop sound  
+{
+	if( !m_pRadSound )
+	{
+		const char *pszSound = "Misc.Geiger";
+		float fRadPitch = random->RandomInt( 95, 105 );
+
+		CPASAttenuationFilter filter( this );
+		m_pRadSound = CSoundEnvelopeController::GetController().SoundCreate( filter, entindex(), CHAN_STATIC, pszSound, ATTN_NORM );
+
+		CSoundEnvelopeController::GetController().Play( m_pRadSound, 1.0, fRadPitch );
+	}
+}
+
+void CASW_Buzzer::DoRadiationLeak(const CTakeDamageInfo &info)	//Radiation leakage effect function
+{
+	QAngle ang(0,0,0);
+	Vector dir = info.GetDamagePosition() - WorldSpaceCenter();
+	dir.z = 0;
+	VectorNormalize(dir);
+	ang[YAW] = UTIL_VecToYaw(dir);
+	StartRadLoopSound();
+	// radiation leakage onces only when marine is hurting by radiation to avoid lag.
+	if (m_fLastTouchHurtTime > (gpGlobals->curtime - gpGlobals->curtime))
+		return;
+	// spawn a jet in the direction of the damage	
+	DispatchParticleEffect( "barrel_rad_gas_jet", WorldSpaceCenter(), ang, PATTACH_CUSTOMORIGIN_FOLLOW, this ); 
+	// also spawn our big cloud marking out the area of radiation
+	DispatchParticleEffect( "barrel_rad_gas_cloud", WorldSpaceCenter(), QAngle( 0, 0, 0 ), PATTACH_CUSTOMORIGIN_FOLLOW, this );
+	// create a volume to HURT people
+	m_hRadVolume = (CASW_Radiation_Volume*) CreateEntityByName("asw_radiation_volume");
+	if (m_hRadVolume)
+	{
+		m_hRadVolume->SetParent(this);
+	    m_hRadVolume->SetLocalOrigin(vec3_origin);
+	    m_hRadVolume->m_hCreator = info.GetAttacker();
+	    m_hRadVolume->Spawn();     
+	}
+	m_fLastTouchHurtTime = gpGlobals->curtime;
 }
 
 bool CASW_Buzzer::CorpseGib( const CTakeDamageInfo &info )
@@ -816,7 +860,6 @@ bool CASW_Buzzer::CorpseGib( const CTakeDamageInfo &info )
 
 	return true;
 }
-
 
 // Purpose: Explode the buzzer if it's damaged while crashing
 int	CASW_Buzzer::OnTakeDamage_Dying( const CTakeDamageInfo &info )
@@ -1103,7 +1146,6 @@ bool CASW_Buzzer::OverrideMove( float flInterval )
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose:
 // Input  :
@@ -1266,7 +1308,6 @@ void CASW_Buzzer::TurnHeadToTarget( float flInterval, const Vector &moveTarget )
 	BaseClass::TurnHeadToTarget( flInterval, moveTarget );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Ignore water if I'm close to my enemy
 // Input  :
@@ -1276,7 +1317,6 @@ int CASW_Buzzer::MoveCollisionMask(void)
 {
 	return MASK_NPCSOLID;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Make a splash effect
@@ -1447,6 +1487,24 @@ void CASW_Buzzer::Slice( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 		SpawnBlood(tr.endpos, g_vecAttackDir, pHitEntity->BloodColor(), 6 );
 		EmitSound( "ASW_Buzzer.Attack" );
 	}
+
+	//ignite marine by buzzer/beta buzzer attack/on fire touch, 1=buzzer, 2=beta buzzer, 3=All
+	int iBuzzerMeleeIgnite = rd_buzzer_melee_ignite.GetInt();
+	bool bBuzzerOnTouchFire = rd_buzzer_touch_onfire.GetBool();
+	if (iBuzzerMeleeIgnite > 0 || bBuzzerOnTouchFire)
+	{
+		CASW_Marine *pMarine = CASW_Marine::AsMarine( pHitEntity );
+		if ( pMarine )
+		{
+			bool iBuzzerIsOnFire = (m_bOnFire && bBuzzerOnTouchFire);
+			damageTypes = "attack";
+			if (((iBuzzerMeleeIgnite==1 || iBuzzerMeleeIgnite==3) || iBuzzerIsOnFire) && !bOldBuzzer)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+
+			if ((iBuzzerMeleeIgnite >=2 || iBuzzerIsOnFire) && bOldBuzzer)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+		}
+    }
 
 	// Pop back a little bit after hitting the player
 	ComputeSliceBounceVelocity( pHitEntity, tr );
@@ -1902,7 +1960,6 @@ void CASW_Buzzer::FlapWings(float flInterval)
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Smokes and sparks, exploding periodically. Eventually it goes away.
 //-----------------------------------------------------------------------------
@@ -1965,7 +2022,6 @@ void CASW_Buzzer::MoveExecute_Dead(float flInterval)
 	WalkMove( GetCurrentVelocity() * flInterval,MASK_NPCSOLID );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -1981,6 +2037,8 @@ void CASW_Buzzer::Precache(void)
 	PropBreakablePrecacheAll( MAKE_STRING(ASW_BETA_BUZZER_MODEL) );
 	PrecacheScriptSound( "Ranger.GibSplatHeavy" );
 	PrecacheScriptSound( "Misc.Geiger" );
+	PrecacheParticleSystem( "barrel_rad_gas_cloud" );
+	PrecacheParticleSystem( "barrel_rad_gas_jet" );
 	PrecacheScriptSound( "ASW_Buzzer.Attack" );
 	PrecacheScriptSound( "ASW_Buzzer.Death" );
 	PrecacheScriptSound( "ASW_Buzzer.Pain" );
@@ -2034,7 +2092,6 @@ void CASW_Buzzer::GatherEnemyConditions( CBaseEntity *pEnemy )
 	BaseClass::GatherEnemyConditions(pEnemy);
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: For innate melee attack
 // Input  :
@@ -2087,7 +2144,6 @@ int CASW_Buzzer::MeleeAttack1Conditions( float flDot, float flDist )
 	return COND_CAN_MELEE_ATTACK1;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *pTask - 
@@ -2125,7 +2181,7 @@ void CASW_Buzzer::RunTask( const Task_t *pTask )
 		{
 			// do the movement thingy
 
-//			NDebugOverlay::Line( GetAbsOrigin(), m_vSavePosition, 0, 255, 0, true, 0.1);
+            // NDebugOverlay::Line( GetAbsOrigin(), m_vSavePosition, 0, 255, 0, true, 0.1);
 
 			Vector dir = (m_vSavePosition - GetAbsOrigin());
 			float dist = VectorNormalize( dir );
@@ -2331,7 +2387,6 @@ void CASW_Buzzer::BladesInit()
 	SetActivity( ACT_FLY );
 }
 
-
 //-----------------------------------------------------------------------------
 // Crank up the engine!
 //-----------------------------------------------------------------------------
@@ -2355,7 +2410,6 @@ void CASW_Buzzer::StartEngine( bool fStartSound )
 	AddFlag( FL_FLY );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Start the buzzer's engine sound.
 //-----------------------------------------------------------------------------
@@ -2377,7 +2431,6 @@ void CASW_Buzzer::StopLoopingSounds(void)
 	CSoundEnvelopeController::GetController().SoundDestroy( m_pMoanSound );
 	m_pMoanSound = NULL;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -3450,5 +3503,3 @@ DEFINE_SCHEDULE
 )
 
 AI_END_CUSTOM_NPC()
-
-

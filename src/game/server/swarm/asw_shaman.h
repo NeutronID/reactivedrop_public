@@ -42,6 +42,10 @@ public:
 	virtual bool		CreateBehaviors();
 
 	virtual bool		ShouldGib( const CTakeDamageInfo &info ) { return false; }
+	virtual void		Event_Killed( const CTakeDamageInfo &info );
+	virtual void 		StartTouch( CBaseEntity *pOther );
+	float 				m_fLastTouchHurtTime;
+	const char			*alienLabel, *damageTypes;
 
 	// sounds
 	virtual void PainSound( const CTakeDamageInfo &info );

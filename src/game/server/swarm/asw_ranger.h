@@ -30,6 +30,8 @@ public:
 	virtual void		Precache();
 
 	virtual float		GetIdealSpeed() const;
+	virtual void 		StartTouch( CBaseEntity *pOther );
+	const char			*alienLabel, *damageTypes;
 
 	virtual void		SetHealthByDifficultyLevel();
 

@@ -53,6 +53,11 @@ ConVar	sk_antlionguard_dmg_charge( "sk_antlionguard_dmg_charge", "23" );
 ConVar	sk_antlionguard_dmg_shove( "sk_antlionguard_dmg_shove", "23" );
 ConVar	rd_antlionguard_incavern("rd_antlionguard_incavern", "1", 0, "If 1 antlionguard behavior changes, more agile for tight places");
 ConVar  rd_episodic("rd_episodic", "1", FCVAR_CHEAT, "Internal cvar for overriding hl2_episodic in specific places");
+
+ConVar rd_antlionguard_touch_damage( "rd_antlionguard_touch_damage", "0", FCVAR_CHEAT, "Sets damage caused by antlionguard on touch." );
+ConVar rd_antlionguard_marine_ignite("rd_antlionguard_marine_ignite", "0", FCVAR_CHEAT, "Ignites marine on antlionguard touch( 1=touch ).");
+ConVar rd_antlionguard_touch_onfire("rd_antlionguard_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if antlionguard body on fire touch.");
+
 #define hl2_episodic rd_episodic
 
 #define HL2_EPISODIC 1
@@ -434,6 +439,9 @@ protected:
 public:	
 	inline bool IsCavernBreed( void ) const { return m_bCavernBreed; }
 	inline bool IsInCavern( void ) const { return m_bInCavern; }
+	virtual void 		StartTouch( CBaseEntity *pOther );
+	float				m_fLastTouchHurtTime;
+	const char			*alienLabel, *damageTypes;
 };
 
 //==================================================
@@ -469,6 +477,7 @@ BEGIN_DATADESC( CNPC_AntlionGuard )
 	DEFINE_FIELD( m_iChargeMisses,				FIELD_INTEGER ),
 	DEFINE_FIELD( m_bDecidedNotToStop,			FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bPreferPhysicsAttack,		FIELD_BOOLEAN ),
+    DEFINE_FIELD( m_fLastTouchHurtTime,         FIELD_TIME ),
 
 #if ANTLIONGUARD_BLOOD_EFFECTS
 	DEFINE_FIELD( m_iBleedingLevel,				FIELD_CHARACTER ),
@@ -674,7 +683,7 @@ CNPC_AntlionGuard::CNPC_AntlionGuard( void )
 	}
 
 	m_iszPhysicsPropClass = AllocPooledString( "prop_physics" );
-
+    m_fLastTouchHurtTime = 0;
 	m_pszAlienModelName = ANTLIONGUARD_MODEL;
 	m_nAlienCollisionGroup = ASW_COLLISION_GROUP_ALIEN;
 }
@@ -4774,6 +4783,31 @@ void	CNPC_AntlionGuard::PopulatePoseParameters( void )
 	m_poseHead_Yaw   = LookupPoseParameter("head_yaw" );
 
 	BaseClass::PopulatePoseParameters();
+}
+
+void CNPC_AntlionGuard::StartTouch( CBaseEntity *pOther )
+{
+	BaseClass::StartTouch( pOther );
+
+	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+	if ( pMarine )
+	{
+		int iTouchDamage = rd_antlionguard_touch_damage.GetInt();
+		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+		damageTypes = "on touch";
+
+		if (rd_antlionguard_marine_ignite.GetInt() >= 1 || (m_bOnFire && rd_antlionguard_touch_onfire.GetBool()) )
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+
+		if ( m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <=0 )	//don't hurt him if he was hurt recently
+			return;
+
+		Vector vecForceDir = ( pMarine->GetAbsOrigin() - GetAbsOrigin() );	// hurt the marine
+		CalculateMeleeDamageForce( &info, vecForceDir, pMarine->GetAbsOrigin() );
+		pMarine->TakeDamage( info );
+
+		m_fLastTouchHurtTime = gpGlobals->curtime;
+	}
 }
 
 #if ANTLIONGUARD_BLOOD_EFFECTS

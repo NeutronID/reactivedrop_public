@@ -44,13 +44,14 @@ ConVar asw_mortarbug_speedboost( "asw_mortarbug_speedboost", "1.0",FCVAR_CHEAT ,
 ConVar asw_mortarbug_touch_damage( "asw_mortarbug_touch_damage", "5",FCVAR_CHEAT , "Damage caused by mortarbug on touch" );
 ConVar asw_mortarbug_spitspeed( "asw_mortarbug_spitspeed", "350", FCVAR_CHEAT, "Speed at which mortarbug grenade travels." );
 ConVar asw_debug_mortarbug( "asw_debug_mortarbug", "0", FCVAR_NONE, "Display mortarbug debug info" );
-ConVar asw_mortarbug_face_target("asw_mortarbug_face_target", "1", FCVAR_CHEAT, "Mortarbug faces his target when moving" );
+ConVar asw_mortarbug_face_target( "asw_mortarbug_face_target", "1", FCVAR_CHEAT, "Mortarbug faces his target when moving" );
 ConVar rd_mortarbug_health( "rd_mortarbug_health", "350", FCVAR_CHEAT, "Health of the mortarbug" );
 
-ConVar rd_mortarbug_spit_rate("rd_mortarbug_spit_rate", "3.0", FCVAR_CHEAT, "Sets the firing rate for mortarbug.");
-ConVar rd_mortarbug_touch_onfire("rd_mortarbug_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if mortarbug body on fire touch.");
-extern ConVar rd_deagle_bigalien_dmg_scale;
+ConVar rd_mortarbug_spit_rate( "rd_mortarbug_spit_rate", "3.0", FCVAR_CHEAT, "Sets the firing rate for mortarbug." );
+ConVar rd_mortarbug_touch( "rd_mortarbug_touch", "0", FCVAR_CHEAT, "Ignites marine on mortar touch (1=ignite).");
+ConVar rd_mortarbug_touch_onfire( "rd_mortarbug_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if mortarbug body on fire touch." );
 
+extern ConVar rd_deagle_bigalien_dmg_scale;
 extern ConVar sv_gravity;
 extern ConVar asw_mortarbug_shell_gravity;	// TODO: Replace with proper spit projectile's gravity
 
@@ -71,6 +72,7 @@ CASW_Mortarbug::CASW_Mortarbug()
 
 CASW_Mortarbug::~CASW_Mortarbug()
 {
+
 }
 
 void CASW_Mortarbug::Spawn( void )
@@ -98,7 +100,9 @@ void CASW_Mortarbug::Precache( void )
 	PrecacheScriptSound( "ASW_MortarBug.OnFire" );
 	PrecacheScriptSound( "ASW_MortarBug.Death" );
 	PrecacheParticleSystem( "mortar_launch" );
-
+											  
+	//fix late precache	
+	PrecacheModel( SWARM_MORTARBUG_MODEL );
 	UTIL_PrecacheOther( ASW_MORTARBUG_PROJECTILE );
 
 	BaseClass::Precache();
@@ -108,7 +112,6 @@ float CASW_Mortarbug::GetIdealSpeed() const
 {
 	return asw_mortarbug_speedboost.GetFloat() * BaseClass::GetIdealSpeed() * m_flPlaybackRate;
 }
-
 
 float CASW_Mortarbug::GetIdealAccel( ) const
 {
@@ -154,7 +157,7 @@ void CASW_Mortarbug::IdleSound()
 }
 
 void CASW_Mortarbug::DeathSound( const CTakeDamageInfo &info )
-{
+{																
 	EmitSound("ASW_MortarBug.Death");
 }
 
@@ -450,20 +453,23 @@ void CASW_Mortarbug::StartTouch( CBaseEntity *pOther )
 	BaseClass::StartTouch( pOther );
 
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+	
 	if (pMarine)
 	{
-		// don't hurt him if he was hurt recently
-		if (m_fLastTouchHurtTime + 0.6f > gpGlobals->curtime)
-		{
-			return;
-		}
-		// hurt the marine
-		Vector vecForceDir = (pMarine->GetAbsOrigin() - GetAbsOrigin());
-		CTakeDamageInfo info( this, this, asw_mortarbug_touch_damage.GetInt(), DMG_SLASH );
-		if (m_bOnFire && rd_mortarbug_touch_onfire.GetBool() )
+		int iTouch = rd_mortarbug_touch.GetInt();
+		int iTouchDamage = asw_mortarbug_touch_damage.GetInt();
+		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+		damageTypes = "on touch";	 
+
+		if ((iTouch == 1) || (m_bOnFire && rd_mortarbug_touch_onfire.GetBool()))
 			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+		if (m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <=0)		//don't hurt him if he was hurt recently
+			return;
+
+		Vector vecForceDir = ( pMarine->GetAbsOrigin() - GetAbsOrigin() );	// hurt the marine
 		CalculateMeleeDamageForce( &info, vecForceDir, pMarine->GetAbsOrigin() );
 		pMarine->TakeDamage( info );
+
 		m_fLastTouchHurtTime = gpGlobals->curtime;
 	}
 }

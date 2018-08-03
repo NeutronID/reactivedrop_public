@@ -446,7 +446,7 @@ void CASW_Alien_Goo::GooAcidTouch(CBaseEntity* pOther)
             CTakeDamageInfo info( this, this, iTouchDamage, DMG_ACID ); //ASW_ACID_DAMAGE replaced by iTouchDamage
             damageTypes = "on touch";
 
-		if (rd_biomass_ignite.GetInt() >= 1 || (m_bOnFire && rd_biomass_touch_onfire.GetBool()))
+		    if (rd_biomass_ignite.GetInt() >= 1 || (m_bOnFire && rd_biomass_touch_onfire.GetBool()) )
 			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 			
 			Vector	killDir = pOther->GetAbsOrigin() - GetAbsOrigin();

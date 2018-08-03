@@ -72,10 +72,12 @@ ConVar asw_shieldbug_knockdown("asw_shieldbug_knockdown", "1", FCVAR_CHEAT, "If 
 ConVar asw_shieldbug_knockdown_force("asw_shieldbug_knockdown_force", "500", FCVAR_CHEAT, "Magnitude of knockdown force for shieldbug's melee attack");
 ConVar asw_shieldbug_knockdown_lift("asw_shieldbug_knockdown_lift", "300", FCVAR_CHEAT, "Upwards force for shieldbug's melee attack");
 ConVar rd_shieldbug_health( "rd_shieldbug_health", "1000", FCVAR_CHEAT, "Health of the shieldbug" );
-ConVar rd_shieldbug_ignite( "rd_shieldbug_ignite", "3.0f", FCVAR_CHEAT, "Duration ignite shieldbug" );
 
+ConVar rd_shieldbug_ignite( "rd_shieldbug_ignite", "3.0f", FCVAR_CHEAT, "Duration ignite shieldbug" );
+ConVar rd_shieldbug_marine_ignite("rd_shieldbug_marine_ignite", "0", FCVAR_CHEAT, "Ignites marine on shieldbug touch( 1=melee, 2=touch, 3=All )." );
 ConVar rd_shieldbug_touch_damage("rd_shieldbug_touch_damage", "0", FCVAR_CHEAT, "Sets damage caused by shieldbug on touch.");
 ConVar rd_shieldbug_touch_onfire("rd_shieldbug_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if shieldbug body on fire touch.");
+
 extern ConVar sv_gravity;
 extern ConVar asw_debug_marine_chatter;
 extern ConVar rd_deagle_bigalien_dmg_scale;
@@ -88,6 +90,7 @@ CASW_Shieldbug::CASW_Shieldbug( void )
 {
 	m_fMarineBlockCounter = 0;
 	m_fLastMarineBlockTime = 0;
+	m_fLastTouchHurtTime = 0;
 	m_flDefendDuration = RandomFloat( 6.0f, 10.0f );
 	if ( asw_old_shieldbug.GetBool() )
 	{
@@ -109,6 +112,7 @@ END_SEND_TABLE()
 
 BEGIN_DATADESC( CASW_Shieldbug )
 	DEFINE_FIELD(m_bDefending, FIELD_BOOLEAN),
+	DEFINE_FIELD( m_fLastTouchHurtTime, FIELD_TIME ),
 	DEFINE_FIELD(m_fNextFlinchTime, FIELD_FLOAT),
 	DEFINE_FIELD(m_fLastHurtTime, FIELD_TIME),
 	DEFINE_FIELD(m_fNextHeadhitAttack, FIELD_TIME),
@@ -160,6 +164,10 @@ void CASW_Shieldbug::Precache( void )
 	PrecacheScriptSound( "ASW_ShieldBug.Attack" );
 	PrecacheScriptSound( "ASW_ShieldBug.Circle" );
 	PrecacheScriptSound( "ASW_ShieldBug.Idle" );
+
+	// fix late precache 
+	PrecacheModel( SWARM_NEW_SHIELDBUG_MODEL );   
+	PrecacheModel( SWARM_SHIELDBUG_MODEL );
 
 	// these are all his breakables
 	PrecacheModel( "models/aliens/shieldbug/gib_back_leg.mdl");
@@ -682,10 +690,17 @@ void CASW_Shieldbug::MeleeAttack( float distance, float damage, QAngle &viewPunc
 			vecForceDir *= asw_shieldbug_knockdown_force.GetFloat();
 			vecForceDir += Vector( 0, 0, asw_shieldbug_knockdown_lift.GetFloat() );
 			pMarine->Knockdown( this, vecForceDir  );
+
+			//ignite marine by shieldbug 1=melee, 2=touch, 3=All
+			int iTouchDamage = rd_shieldbug_touch_damage.GetInt();
+			CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+			damageTypes = "knockdown";
+
+			if (rd_shieldbug_marine_ignite.GetInt()== 1 || rd_shieldbug_marine_ignite.GetInt()== 3)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 		}
 	}
 }
-
 
 void CASW_Shieldbug::CheckForShieldbugHint( const CTakeDamageInfo &info )
 {
@@ -880,6 +895,7 @@ int CASW_Shieldbug::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	return result;
 }
 
+//ignite marine by shieldbug on touch/on fire touch, 1=melee, 2=touch, 3=All
 void CASW_Shieldbug::StartTouch( CBaseEntity *pOther )
 {
 	BaseClass::StartTouch( pOther );
@@ -887,11 +903,12 @@ void CASW_Shieldbug::StartTouch( CBaseEntity *pOther )
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 	if ( pMarine )
 	{
-		int iTouchDamage = rd_shieldbug_touch_damage.GetInt();
-		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
-		damageTypes = "on touch";
+			//ignite marine by shieldbug knockdown, 1=melee, 2=touch, 3=All
+			int iTouchDamage = rd_shieldbug_touch_damage.GetInt();
+			CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+			damageTypes = "on touch";
 
-		if (m_bOnFire && rd_shieldbug_touch_onfire.GetBool());
+		if (rd_shieldbug_marine_ignite.GetInt() >= 2 || (m_bOnFire && rd_shieldbug_touch_onfire.GetBool()) )
 			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 
 		if ( m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <=0 )	//don't hurt him if he was hurt recently
@@ -904,6 +921,7 @@ void CASW_Shieldbug::StartTouch( CBaseEntity *pOther )
 		m_fLastTouchHurtTime = gpGlobals->curtime;
 	}
 }
+
 bool CASW_Shieldbug::ShouldGib( const CTakeDamageInfo &info )
 {
 	// don't gib if we burnt to death
@@ -964,7 +982,7 @@ void CASW_Shieldbug::SetHealthByDifficultyLevel()
 	SetMaxHealth( GetHealth() );
 }
 
-void CASW_Shieldbug::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAttacker, CBaseEntity *pDamagingWeapon /*= NULL */ )
+void CASW_Shieldbug::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAttacker, CBaseEntity *pDamagingWeapon )
 {
 	BaseClass::ASW_Ignite(MIN(flFlameLifetime, +rd_shieldbug_ignite.GetFloat()), flSize, pAttacker, pDamagingWeapon );
 }

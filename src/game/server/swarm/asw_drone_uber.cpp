@@ -15,6 +15,9 @@ ConVar asw_uber_speed_scale("asw_uber_speed_scale", "0.5f", FCVAR_CHEAT, "Speed 
 ConVar asw_uber_auto_speed_scale("asw_uber_auto_speed_scale", "0.3f", FCVAR_CHEAT, "Speed scale of uber drones when attacking");
 ConVar rd_drone_uber_bones("rd_drone_uber_bones", "1", FCVAR_NONE, "Set bodygroups on ubers to the scariest appendage.");
 ConVar rd_drone_uber_damage("rd_drone_uber_damage", "20", FCVAR_CHEAT, "Damage inflicted by uber drone attacks.");
+ConVar rd_drone_uber_ignite( "rd_drone_uber_ignite", "0", FCVAR_CHEAT, "Ignites marine on uber melee/touch(1=melee, 2=touch, 3=All)." );
+ConVar rd_drone_uber_touch_onfire("rd_drone_uber_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if uber body on fire touch.");
+
 extern ConVar asw_alien_hurt_speed;
 extern ConVar asw_alien_stunned_speed;
 extern ConVar rd_deagle_bigalien_dmg_scale;
@@ -82,6 +85,9 @@ void CASW_Drone_Uber::SetHealthByDifficultyLevel()
 
 float CASW_Drone_Uber::GetDamage()	//Easy customizing of alien damages.
 {
+	//marine ignite by uber melee attack, 1=melee, 2=touch, 3=All
+	if ( rd_drone_uber_ignite.GetInt() == 1 || rd_drone_uber_ignite.GetInt() == 3 )
+    {
 		CBaseEntity *pHurt = CheckTraceHullAttack(asw_drone_melee_range.GetFloat(), -Vector(16,16,32), Vector(16,16,32), 0, DMG_SLASH, asw_drone_melee_force.GetFloat());
 		if ( pHurt )
 		{
@@ -89,10 +95,27 @@ float CASW_Drone_Uber::GetDamage()	//Easy customizing of alien damages.
 			if ( pMarine )
 			{
 				CTakeDamageInfo info( this, this, rd_drone_uber_damage.GetFloat(), DMG_SLASH );
+                ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, "melee attack");
 			}
 		}
+     }
 
 	return rd_drone_uber_damage.GetFloat();
+}
+
+//ignite marine by Uber on touch/on fire touch, 1=melee, 2=on touch, 3=All
+void CASW_Drone_Uber::StartTouch( CBaseEntity *pOther )
+{
+	BaseClass::StartTouch( pOther );
+	if ( rd_drone_uber_ignite.GetInt() >= 2 || (rd_drone_uber_touch_onfire.GetBool() && m_bOnFire) )
+	{
+		CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
+		if ( pMarine )
+		{
+			CTakeDamageInfo info( this, this, 0, DMG_SLASH );
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, "on touch");
+		}
+	}
 }
 
 float CASW_Drone_Uber::GetIdealSpeed() const
@@ -128,6 +151,7 @@ int CASW_Drone_Uber::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 			}
 		}		
 	}
+
 	if (info.GetDamageType() & DMG_BULLET)
 	{
 		if (info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE)

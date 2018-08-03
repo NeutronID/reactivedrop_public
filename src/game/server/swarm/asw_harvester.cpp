@@ -13,6 +13,7 @@
 #include "asw_shareddefs.h"
 #include "asw_weapon_assault_shotgun_shared.h"
 #include "asw_weapon_deagle_shared.h"
+#include "entitylist.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -25,11 +26,11 @@ float CASW_Harvester::s_fNextSpawnSoundTime = 0;
 float CASW_Harvester::s_fNextPainSoundTime = 0;
 
 BEGIN_DATADESC( CASW_Harvester )
-	DEFINE_FIELD( m_fLastLayTime, FIELD_TIME ),	
+	DEFINE_FIELD( m_fLastLayTime, FIELD_TIME ),
 	DEFINE_FIELD( m_iCrittersAlive, FIELD_INTEGER ),
 	DEFINE_FIELD( m_fLastTouchHurtTime, FIELD_TIME ),
 	DEFINE_FIELD( m_fGibTime, FIELD_TIME ),
-	DEFINE_FIELD( m_flIdleDelay,			FIELD_TIME ),
+	DEFINE_FIELD( m_flIdleDelay, FIELD_TIME ),
 END_DATADESC()
 
 ConVar asw_harvester_speedboost( "asw_harvester_speedboost", "1.0",FCVAR_CHEAT , "boost speed for the harvesters" );
@@ -41,7 +42,11 @@ ConVar asw_harvester_spawn_height( "asw_harvester_spawn_height", "16", FCVAR_CHE
 ConVar asw_harvester_spawn_interval( "asw_harvester_spawn_interval", "1.0", FCVAR_CHEAT, "Time between spawning a harvesite and starting to spawn another" );
 ConVar rd_harvester_health( "rd_harvester_health", "200", FCVAR_CHEAT, "Health of the harvester" );
 
+ConVar rd_harvester_marine_ignite("rd_harvester_marine_ignite", "0", FCVAR_CHEAT, "Ignites marine on harvester touch( 1=touch )." );
+ConVar rd_harvester_touch_onfire("rd_harvester_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if harvester body on fire touch.");
+
 extern ConVar rd_deagle_bigalien_dmg_scale;
+
 
 // Anim Events
 int AE_HARVESTER_SPAWN_CRITTER;
@@ -96,6 +101,8 @@ void CASW_Harvester::Precache( void )
     PrecacheModel("models/swarm/harvester/Harvester.mdl");
 	UTIL_PrecacheOther( "asw_parasite_defanged" );
 
+	PrecacheModel( SWARM_NEW_HARVESTER_MODEL );
+	PrecacheModel( SWARM_HARVESTER_MODEL );
 	BaseClass::Precache();
 }
 
@@ -416,6 +423,9 @@ int CASW_Harvester::TranslateSchedule( int scheduleType )
 
 CAI_BaseNPC* CASW_Harvester::SpawnAlien()
 {
+	//Prevent spawning if over 1900 edicts
+	if (gEntList.NumberOfEdicts() > 1900)
+		return NULL;
 	if (asw_harverter_suppress_children.GetBool())
 		return NULL;
 
@@ -473,16 +483,22 @@ void CASW_Harvester::StartTouch( CBaseEntity *pOther )
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 	if (pMarine)
 	{
-		// don't hurt him if he was hurt recently
-		if (m_fLastTouchHurtTime + 0.6f > gpGlobals->curtime)
-		{
+        int iTouch = rd_harvester_marine_ignite.GetInt();
+		int iTouchDamage = asw_harvester_touch_damage.GetInt();
+		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
+		damageTypes = "on touch";
+
+        //1=ignite
+		if ((iTouch == 1) || (m_bOnFire && rd_harvester_touch_onfire.GetBool()))
+			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
+
+		if (m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <= 0)
 			return;
-		}
-		// hurt the marine
-		Vector vecForceDir = (pMarine->GetAbsOrigin() - GetAbsOrigin());
-		CTakeDamageInfo info( this, this, asw_harvester_touch_damage.GetInt(), DMG_SLASH );
+
+		Vector vecForceDir = ( pMarine->GetAbsOrigin() - GetAbsOrigin() );
 		CalculateMeleeDamageForce( &info, vecForceDir, pMarine->GetAbsOrigin() );
 		pMarine->TakeDamage( info );
+
 		m_fLastTouchHurtTime = gpGlobals->curtime;
 	}
 }

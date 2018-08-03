@@ -11,6 +11,7 @@
 #include "iasw_spawnable_npc.h"
 #include "asw_lag_compensation.h"
 #include "asw_shareddefs.h"
+#include "asw_barrel_radioactive.h"
 
 // Start with the engine off and folded up.
 #define SF_ASW_BUZZER_NO_DAMAGE_EFFECTS	(1 << 17)
@@ -132,7 +133,12 @@ public:
 		m_iHealth = 0;
 	}
 
-	const char	   *b_AlienModelName;
+	CSoundPatch	*m_pRadSound;
+	CHandle<CASW_Radiation_Volume> m_hRadVolume;
+	virtual void	StartRadLoopSound();
+	virtual void	DoRadiationLeak(const CTakeDamageInfo &info);
+	const char		*alienLabel, *damageTypes, *b_AlienModelName;
+	float			m_fLastTouchHurtTime;
 	bool 			bOldBuzzer;
 
 	enum BuzzerConditions

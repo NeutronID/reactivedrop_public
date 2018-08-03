@@ -45,8 +45,11 @@ ConVar rd_boomer_melee_min_damage( "rd_boomer_melee_min_damage", "4", FCVAR_CHEA
 ConVar rd_boomer_melee_max_damage( "rd_boomer_melee_max_damage", "6", FCVAR_CHEAT, "Sets boomer melee max damage." );
 ConVar rd_boomer_melee_force( "rd_boomer_melee_force", "4", FCVAR_CHEAT, "Sets boomer melee force." );
 ConVar rd_boomer_chase_distance( "rd_boomer_chase_distance", "600", FCVAR_CHEAT, "Sets boomer chase distance." );
-ConVar rd_boomer_touch_damage( "rd_boomer_touch_damage", "5", FCVAR_CHEAT, "Sets damage caused by boomer on touch." );
+
+ConVar rd_boomer_touch_damage( "rd_boomer_touch_damage", "0", FCVAR_CHEAT, "Sets damage caused by boomer on touch." );
+ConVar rd_boomer_marine_ignite("rd_boomer_marine_ignite", "0", FCVAR_CHEAT, "Ignites marine on boomer melee/touch(1=melee, 2=touch, 3=All).");
 ConVar rd_boomer_touch_onfire("rd_boomer_touch_onfire", "0", FCVAR_CHEAT, "Ignites marine if boomer body on fire touch.");
+
 extern ConVar asw_alien_debug_death_style;
 
 extern ConVar asw_debug_alien_damage;
@@ -65,7 +68,7 @@ CASW_Boomer::CASW_Boomer()
 	// reactivedrop: this is a must or burrowed aliens spawned from spawner 
 	// have incorrect collision group and block other aliens
 	m_nAlienCollisionGroup = ASW_COLLISION_GROUP_ALIEN;
-m_fLastTouchHurtTime = 0;
+    m_fLastTouchHurtTime = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +95,6 @@ void CASW_Boomer::Spawn( void )
 	m_bNeverRagdoll = true;
 }
 
-
 void CASW_Boomer::SetHealthByDifficultyLevel()
 {
 	int iHealth = MAX( 25, ASWGameRules()->ModifyAlienHealthBySkillLevel( asw_boomer_health.GetInt() ) );
@@ -118,7 +120,6 @@ void CASW_Boomer::Precache( void )
 	PrecacheScriptSound( "ASW_Boomer.Death_Gib" );
 	BaseClass::Precache();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose:	
@@ -243,6 +244,7 @@ bool CASW_Boomer::CanDoFancyDeath()
 		return BaseClass::CanDoFancyDeath();
 }
 
+//ignited marine by boomer on touch/on fire touch, 1=melee, 2=touch, 3=All
 void CASW_Boomer::StartTouch( CBaseEntity *pOther )
 {
 	BaseClass::StartTouch( pOther );
@@ -254,7 +256,7 @@ void CASW_Boomer::StartTouch( CBaseEntity *pOther )
 		CTakeDamageInfo info( this, this, iTouchDamage, DMG_SLASH );
 		damageTypes = "on touch";
 
-		if (m_bOnFire && rd_boomer_touch_onfire.GetBool());
+		if (rd_boomer_marine_ignite.GetInt() >= 2 || (m_bOnFire && rd_boomer_touch_onfire.GetBool()) )
 			ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);
 
 		if ( m_fLastTouchHurtTime + 0.35f > gpGlobals->curtime || iTouchDamage <=0 )	//don't hurt him if he was hurt recently
@@ -268,6 +270,7 @@ void CASW_Boomer::StartTouch( CBaseEntity *pOther )
 	}
 }
 
+//ignite marine by boomer melee attack, 1=melee, 2=touch, 3=All
 void CASW_Boomer::MeleeAttack(float distance, float damage)
 {
 	CBaseEntity *pHurt = CheckTraceHullAttack( distance, -Vector(16,16,32), Vector(16,16,32), damage, DMG_SLASH, rd_boomer_melee_force.GetFloat() );
@@ -278,6 +281,9 @@ void CASW_Boomer::MeleeAttack(float distance, float damage)
 		{
 			CTakeDamageInfo info( this, this, damage, DMG_SLASH );
 			damageTypes = "melee attack";
+
+			if (rd_boomer_marine_ignite.GetInt() == 1 || rd_boomer_marine_ignite.GetInt() == 3)
+				ASWGameRules()->MarineIgnite(pMarine, info, alienLabel, damageTypes);	 
 		}
 	}
 }
@@ -304,7 +310,6 @@ bool CASW_Boomer::CorpseGib( const CTakeDamageInfo &info )
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose:	
 // Input:	
@@ -320,7 +325,6 @@ int CASW_Boomer::SelectDeadSchedule()
 	CleanupOnDeath();
 	return SCHED_DIE;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose:	
@@ -339,7 +343,6 @@ void CASW_Boomer::BuildScheduleTestBits()
 
 	BaseClass::BuildScheduleTestBits();
 }
-
 
 //-----------------------------------------------------------------------------
 //

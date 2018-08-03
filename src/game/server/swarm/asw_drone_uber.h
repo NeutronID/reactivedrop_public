@@ -21,6 +21,8 @@ public:
 	virtual float GetIdealSpeed() const;
 	virtual int OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	virtual bool ModifyAutoMovement( Vector &vecNewPos );
+	virtual void StartTouch( CBaseEntity *pOther );
+	const char	*alienLabel, *damageTypes;
 
 private:
 	float GetDamage();	//easy modification of alien damages.

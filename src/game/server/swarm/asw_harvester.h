@@ -80,6 +80,7 @@ public:
 	static float s_fNextSpawnSoundTime;
 	static float s_fNextPainSoundTime;
 
+	const char	*alienLabel, *damageTypes;
 private:
 	DEFINE_CUSTOM_AI;
 };
