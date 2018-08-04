@@ -27,6 +27,8 @@
 extern ConVar asw_debug_mine;
 ConVar rd_laser_mine_takes_damage("rd_laser_mine_takes_damage", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "If 1 laser mines can be destroyed by weapons");
 ConVar rd_laser_mine_targets_everything("rd_laser_mine_targets_everything", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "If 1 laser mines explode under marines and aliens");
+ConVar rd_laser_mine_damage("rd_laser_mine_damage", "100.0f", FCVAR_CHEAT, "laser mines damage");
+ConVar rd_laser_mine_radius("rd_laser_mine_radius", "256.0f", FCVAR_CHEAT, "laser mines radius");
 
 LINK_ENTITY_TO_CLASS( asw_laser_mine, CASW_Laser_Mine );
 
@@ -70,8 +72,8 @@ void CASW_Laser_Mine::Spawn( void )
 	else 
 		m_takedamage	= DAMAGE_NO;
 
-	m_flDamageRadius = 256.0f;	// TODO: grab from marine skill
-	m_flDamage = 100.0f;	// TODO: Grab from marine skill
+	m_flDamageRadius = rd_laser_mine_radius.GetFloat();
+	m_flDamage = rd_laser_mine_damage.GetFloat();
 	m_bMineActive = false;
 	m_nSkin = 3;
 
