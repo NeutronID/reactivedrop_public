@@ -35,22 +35,19 @@
 #include "particle_parse.h"
 
 #include "asw_weapon_tesla_gun_shared.h"
+#include "convar.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 ConVar rd_tesla_gun_infinite("rd_tesla_gun_infinite", "0", FCVAR_CHEAT, "Infinite ammo for tesla gun.");
-static const float ASW_TG_RANGE = 280.0f; // Range of electrical discharge - TODO: make this an attribute?
+ConVar ASW_TG_RANGE("rd_tesla_range", "240.0f", FCVAR_CHEAT, "Sets the range of the tesla gun.");
+ConVar ASW_TG_MAX_SHOCK_ALIENS("rd_tesla_max_targets", "6", FCVAR_CHEAT, "Max number of aliens to lock on to.", true, 0.0f, true, 32.0f);
+ConVar ASW_TG_SEARCH_DIAMETER("rd_tesla_search_diameter", "48.0f", FCVAR_CHEAT, "How far past the range to search for enemies to latch on to.");
 static const float ASW_TG_TRACE_SIZE = 10.0f; // Size of the laser's trace attack
 static const float ASW_TG_FIELD_DURATION = 2.0f; // Duration of electrical field left behind
-
-//static const float ASW_TG_SHOCK_RATE = 0.25f; // Rate at which we shock entities we're latched on
-static const float ASW_TG_SEARCH_DIAMETER = 48.0f; // How far past the range to search for enemies to latch on to
 static const float SQRT3 = 1.732050807569; // for computing max extents inside a box
-static const Vector ASW_TG_SEARCH_BOX_EXTENTS( ASW_TG_SEARCH_DIAMETER/2.0f, ASW_TG_SEARCH_DIAMETER/2.0f, ASW_TG_SEARCH_DIAMETER/2.0f );
-
-static const int ASW_TG_MAX_SHOCK_ALIENS = 9; // Max # of aliens to search for a shock target
-
+static const Vector ASW_TG_SEARCH_BOX_EXTENTS( ASW_TG_SEARCH_DIAMETER.GetFloat()/2.0f, ASW_TG_SEARCH_DIAMETER.GetFloat()/2.0f, ASW_TG_SEARCH_DIAMETER.GetFloat()/2.0f );
 
 extern int	g_sModelIndexSmoke;			// (in combatweapon.cpp) holds the index for the smoke cloud
 
@@ -95,7 +92,7 @@ CASW_Weapon_Tesla_Gun::CASW_Weapon_Tesla_Gun( void )
 	m_flLastShockTime = 0.0f;
 	m_flLastDischargeTime = 0.0f;
 
-	m_fMaxRange1 = ASW_TG_RANGE;
+	//m_fMaxRange1 = ASW_TG_RANGE;
 }
 
 //-----------------------------------------------------------------------------
@@ -176,8 +173,10 @@ void CASW_Weapon_Tesla_Gun::PrimaryAttack( void )
 			// Search for nearby entities to shock
 			if ( !hShockEntity )
 			{
-				CBaseEntity *pList[ASW_TG_MAX_SHOCK_ALIENS];
-				int nCount = UTIL_EntitiesInBox( pList, ASW_TG_MAX_SHOCK_ALIENS, m_vecShockPos.Get() - ASW_TG_SEARCH_BOX_EXTENTS, m_vecShockPos.Get() + ASW_TG_SEARCH_BOX_EXTENTS, 0 );
+				//Cap at a maximum of 32 shock targets
+				//CBaseEntity *pList[ASW_TG_MAX_SHOCK_ALIENS];
+				CBaseEntity *pList[32];
+				int nCount = UTIL_EntitiesInBox( pList, ASW_TG_MAX_SHOCK_ALIENS.GetInt(), m_vecShockPos.Get() - ASW_TG_SEARCH_BOX_EXTENTS, m_vecShockPos.Get() + ASW_TG_SEARCH_BOX_EXTENTS, 0 );
 				for ( int i = 0; i < nCount; i++ )
 				{
 					if ( ShockAttach( pList[ i ] ) )
@@ -191,6 +190,7 @@ void CASW_Weapon_Tesla_Gun::PrimaryAttack( void )
 
 			if ( gpGlobals->curtime > m_flLastDischargeTime + (GetFireRate()*3) )
 			{
+            //No ammo usage
 			if (!rd_tesla_gun_infinite.GetBool())
 				m_iClip1 = MAX( 0, m_iClip1 - 1 );
 				m_flLastDischargeTime = gpGlobals->curtime;
@@ -215,7 +215,7 @@ void CASW_Weapon_Tesla_Gun::PrimaryAttack( void )
 			
 			// too far
 			float flShockDistance = (hShockEntity->GetAbsOrigin() - pMarine->GetAbsOrigin()).LengthSqr();
-			if ( flShockDistance > (GetWeaponRange() + SQRT3*ASW_TG_SEARCH_DIAMETER)*(GetWeaponRange() + SQRT3*ASW_TG_SEARCH_DIAMETER) )
+			if ( flShockDistance > (GetWeaponRange() + SQRT3*ASW_TG_SEARCH_DIAMETER.GetFloat())*(GetWeaponRange() + SQRT3*ASW_TG_SEARCH_DIAMETER.GetFloat()) )
 			{
 				ShockDetach();
 				SetFiringState( ASW_TG_FIRE_DISCHARGE );
@@ -315,7 +315,7 @@ void CASW_Weapon_Tesla_Gun::ShockEntity()
 		pTargetAlien->ForceFlinch( pMarine->GetAbsOrigin() );		
 	}
 #endif
-
+	//No ammo usage
 	// decrement ammo
 	//m_iClip1 = MAX( 0, m_iClip1 - 1 );
 
