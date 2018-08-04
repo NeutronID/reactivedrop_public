@@ -6034,6 +6034,8 @@ void CAlienSwarm::ShockNearbyAliens( CASW_Marine *pMarine, CASW_Weapon *pWeaponS
 	}
 }
 
+ConVar rd_grenade_freeze_damage("rd_grenade_freeze_damage", "0", FCVAR_CHEAT, "Causes freeze grenades to inflict damage on aliens.");
+
 void CAlienSwarm::FreezeAliensInRadius( CBaseEntity *pInflictor, float flFreezeAmount, const Vector &vecSrcIn, float flRadius )
 {
 	const int MASK_RADIUS_DAMAGE = MASK_SHOT&(~CONTENTS_HITBOX);
@@ -6172,6 +6174,8 @@ void CAlienSwarm::FreezeAliensInRadius( CBaseEntity *pInflictor, float flFreezeA
 			nFrozenStat++;
 		}
 		pAlien->Freeze( flFreezeAmount, pInflictor, NULL );
+		//Allow freeze grenades to damage aliens.
+		pAlien->TakeDamage(CTakeDamageInfo(pInflictor, pInflictor, rd_grenade_freeze_damage.GetFloat(), DMG_BLAST));
 		nFrozen++;
 #endif
 	}
