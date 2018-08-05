@@ -26,6 +26,7 @@ static ConVar asw_mortar_round_radius_check_scale( "asw_mortar_round_radius_chec
 static ConVar asw_mortar_round_child_fuse_min( "asw_mortar_round_child_fuse_min", "0.5", FCVAR_CHEAT, "Cluster grenade child cluster's minimum fuse length" );
 static ConVar asw_mortar_round_child_fuse_max( "asw_mortar_round_child_fuse_max", "1.0", FCVAR_CHEAT, "Cluster grenade child cluster's maximum fuse length" );
 ConVar asw_mortar_round_gravity( "asw_mortar_round_gravity", "0.8f", FCVAR_CHEAT, "Gravity of mortar bug's mortar" );
+ConVar rd_mortarbug_round_flame( "rd_mortarbug_round_flame", "3.0", FCVAR_CHEAT, "Set duration of burning fireball");
 ConVar rd_mortarbug_round_damage( "rd_mortarbug_round_damage", "80.f", FCVAR_CHEAT );
 ConVar rd_mortarbug_round_radius( "rd_mortarbug_round_radius", "220.f", FCVAR_CHEAT );
 ConVar rd_mortarbug_round_mass( "rd_mortarbug_round_mass", "10", FCVAR_CHEAT, "Mass of mortarbug grenade");
@@ -54,6 +55,8 @@ void CASW_Mortar_Round::Spawn( void )
 
 	m_flDamage		= rd_mortarbug_round_damage.GetFloat();
 	m_DmgRadius		= rd_mortarbug_round_radius.GetFloat();
+
+    Ignite (rd_mortarbug_round_flame.GetFloat(), false, 0, false); // activate fire, Set duration of burning fireball
 
 	m_takedamage	= DAMAGE_YES;
 	m_iHealth = 1;
