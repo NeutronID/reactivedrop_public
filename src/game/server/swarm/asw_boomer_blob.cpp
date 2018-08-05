@@ -26,7 +26,9 @@ static ConVar asw_boomer_blob_radius_check_scale( "asw_boomer_blob_radius_check_
 static ConVar asw_boomer_blob_child_fuse_min( "asw_boomer_blob_child_fuse_min", "0.5", FCVAR_CHEAT, "Cluster grenade child cluster's minimum fuse length" );
 static ConVar asw_boomer_blob_child_fuse_max( "asw_boomer_blob_child_fuse_max", "1.0", FCVAR_CHEAT, "Cluster grenade child cluster's maximum fuse length" );
 static ConVar asw_boomer_blob_gravity( "asw_boomer_blob_gravity", "0.8f", FCVAR_CHEAT, "Gravity of mortar bug's mortar" );
-
+ConVar rd_boomer_blob_damage( "rd_boomer_blob_damage", "80.f", FCVAR_CHEAT );
+ConVar rd_boomer_blob_radius( "rd_boomer_blob_radius", "165.0f", FCVAR_CHEAT );
+ConVar rd_boomer_blob_mass( "rd_boomer_blob_mass", "10", FCVAR_CHEAT, "Mass of boomer blob");
 CUtlVector<CBaseEntity*> g_aExplosiveProjectiles;
 
 LINK_ENTITY_TO_CLASS( asw_boomer_blob, CASW_Boomer_Blob );
@@ -60,8 +62,8 @@ void CASW_Boomer_Blob::Spawn( void )
 	
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
 
-	m_flDamage		= 80;
-	m_DmgRadius		= 165.0f;  // NOTE: this gets overriden
+	m_flDamage		= rd_boomer_blob_damage.GetFloat();
+	m_DmgRadius		= rd_boomer_blob_radius.GetFloat();
 
 	m_takedamage	= DAMAGE_NO;
 	m_iHealth = 1;
@@ -113,7 +115,7 @@ void CASW_Boomer_Blob::Precache( )
 	BaseClass::Precache();
 
 	PrecacheModel( ASW_BOOMER_BLOB_MODEL );
-	//PrecacheScriptSound( "ASWGrenade.Alarm" );
+	PrecacheScriptSound( "ASWGrenade.Alarm" );
 	PrecacheScriptSound( "ASW_Boomer_Grenade.Explode" );
 	PrecacheScriptSound( "ASW_Boomer_Projectile.Spawned" );
 	PrecacheParticleSystem( "boomer_projectile_main_trail" );
@@ -334,6 +336,20 @@ void CASW_Boomer_Blob::Detonate( )
 float CASW_Boomer_Blob::GetEarliestAOEDetonationTime( )
 {
 	return gpGlobals->curtime + asw_boomer_blob_min_detonation_time.GetFloat();
+}
+
+int CASW_Boomer_Blob::OnTakeDamage(const CTakeDamageInfo &info)
+{
+    if ( info.GetAttacker() && info.GetAttacker()->IsNPC() )
+    {
+        if (! (info.GetDamageType() & DMG_BLAST) ) //disallow to be damaged with grenades
+        {
+			Vector vecForce = info.GetDamageForce() / rd_boomer_blob_mass.GetFloat();
+            vecForce.z = random->RandomFloat(250, 300);
+            ApplyAbsVelocityImpulse(vecForce);
+        }
+    }
+    return 0;
 }
 
 void CASW_Boomer_Blob::SetClusters( int iClusters, bool bMaster )
