@@ -65,7 +65,7 @@ void CASW_Boomer_Blob::Spawn( void )
 	m_flDamage		= rd_boomer_blob_damage.GetFloat();
 	m_DmgRadius		= rd_boomer_blob_radius.GetFloat();
 
-	m_takedamage	= DAMAGE_NO;
+	m_takedamage	= DAMAGE_YES;
 	m_iHealth = 1;
 
 	m_bModelOpening = false;
@@ -75,7 +75,7 @@ void CASW_Boomer_Blob::Spawn( void )
 	SetGravity( asw_boomer_blob_gravity.GetFloat() );
 	SetFriction( asw_boomer_blob_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-	SetCollisionGroup( ASW_COLLISION_GROUP_PASSABLE );
+	SetCollisionGroup( ASW_COLLISION_GROUP_PLAYER_MISSILE );
 
 	SetTouch( &CASW_Boomer_Blob::Touch );
 
