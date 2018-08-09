@@ -110,6 +110,7 @@
 #include "missionchooser/iasw_random_missions.h"
 #include "missionchooser/iasw_map_builder.h"
 #include "rd_challenges_shared.h"
+#include "particle_parse.h"
 #include "rd_workshop.h"
 #include "rd_lobby_utils.h"
 
@@ -1088,7 +1089,7 @@ CAlienSwarm::CAlienSwarm()
 {
 	Msg("CAlienSwarm created\n");
 
-	m_szGameDescription = "Alien Swarm: Reactive Drop";
+	m_szGameDescription = "Game without «Challenge»";
 
 	// create the profile list for the server
 	//  clients do this is in c_asw_player.cpp
@@ -7682,10 +7683,10 @@ void CAlienSwarm::OnPlayerFullyJoined( CASW_Player *pPlayer )
 		if ( !pPlayer->GetPromotion() )
 		{
 			int nXp = pPlayer->GetExperience();
-			// players below level 30 are considered new
-			if ( nXp < 51750 )
+			// players below level 34 are considered new
+			if ( nXp < 59400 )
 			{
-				engine->ServerCommand( CFmtStr( "kickid %s 'This difficulty level is restricted to players of level 30 or above'\n", pPlayer->GetASWNetworkID() ) );
+				engine->ServerCommand( CFmtStr( "kickid %s 'This challenge level is restricted to players of level 34'\n", pPlayer->GetASWNetworkID() ) );
 			}
 		}
 	}
@@ -8471,7 +8472,7 @@ void CAlienSwarm::EnableChallenge( const char *szChallengeName )
 		m_szGameDescription = ReactiveDropChallenges::DisplayName( rd_challenge.GetString() );
 	}
 	else
-		m_szGameDescription = "Alien Swarm: Reactive Drop";
+		m_szGameDescription = "Game without «Challenge»";
 }
 
 void CAlienSwarm::ResetChallengeConVars()
