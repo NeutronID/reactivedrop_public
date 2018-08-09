@@ -15,6 +15,7 @@
 #include "asw_weapon_healamp_gun_shared.h"
 #include "asw_weapon_healgrenade_shared.h"
 #include "asw_weapon_medkit_shared.h"
+#include "asw_weapon_medrifle_shared.h"
 #include "asw_game_resource.h"
 #include "asw_sentry_top.h"
 #include "asw_sentry_base.h"
@@ -237,6 +238,28 @@ void CASWGameStats::Event_MarineHealed( CASW_Marine *pMarine, int amount, CBaseE
 	else if ( pHealingWeapon->Classify() == CLASS_ASW_HEAL_GUN )
 	{
 		CASW_Weapon_Heal_Gun *pHealGun = assert_cast<CASW_Weapon_Heal_Gun *>( pHealingWeapon );
+		CASW_Marine *pMedic = pHealGun->GetMarine();
+		if ( !pMedic )
+		{
+			return;
+		}
+		CASW_Marine_Resource *pMR = pMedic->GetMarineResource();
+		if ( !pMR )
+		{
+			return;
+		}
+		if ( pMarine == pMedic )
+		{
+			ADD_STAT( m_iHealGunHeals_Self, amount );
+		}
+		else
+		{
+			ADD_STAT( m_iHealGunHeals, amount );
+		}
+	}
+	else if ( pHealingWeapon->Classify() == CLASS_ASW_MEDRIFLE )
+	{
+		CASW_Weapon_MedRifle *pHealGun = assert_cast<CASW_Weapon_MedRifle *>( pHealingWeapon );
 		CASW_Marine *pMedic = pHealGun->GetMarine();
 		if ( !pMedic )
 		{
